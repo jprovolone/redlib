@@ -176,7 +176,7 @@ html.fixed_navbar:has(body.ios-ui) { scroll-padding-top: calc(110px + env(safe-a
     box-sizing: border-box;
     border-radius: 16px;
 }
-.ios-ui .feed-menu #feed_list > p { padding: 12px 12px 6px; margin: 0; color: var(--ios-muted); font-size: 11px; font-weight: 700; letter-spacing: .08em; opacity: 1; }
+.ios-ui .feed-menu #feed_list > p { padding: 12px 12px 4px; margin: 0; color: var(--ios-muted); font-size: 13px; font-weight: 600; opacity: 1; }
 .ios-ui .feed-menu #feed_list > a { display: flex; align-items: center; padding: 10px 12px; border-radius: 10px; font-size: 15px; }
 .ios-ui .feed-menu #feed_list > a.selected { background: var(--ios-line); color: var(--ios-text); font-weight: 700; }
 .ios-ui .feed-menu #feed_list > a:hover { background: var(--ios-line); }
@@ -267,15 +267,6 @@ body.ios-ui.fixed_navbar #column_one:has(div.post.highlighted + #commentQueryFor
 /* ---- Feed heading ---- */
 .ios-ui .feed-heading { padding: 8px 4px; }
 .ios-ui .feed-heading h1 { margin: 0; font-size: 28px; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em; }
-.ios-ui .feed-eyebrow {
-    display: block;
-    margin-bottom: 2px;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--ios-accent);
-}
 
 /* ---- Sort & options ---- */
 .ios-ui #sort { box-shadow: none; background: transparent; gap: 8px; margin-bottom: 8px; }
@@ -508,12 +499,10 @@ body.ios-ui.fixed_navbar #column_one:has(div.post.highlighted + #commentQueryFor
 .ios-ui .prefs legend {
     float: none;
     width: auto;
-    padding: 0 4px 6px;
+    padding: 0 16px 6px;
     border: 0;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
     color: var(--ios-muted);
 }
 .ios-ui .prefs fieldset > legend { position: relative; margin-bottom: 0; }
@@ -532,3 +521,303 @@ body.ios-ui.fixed_navbar #column_one:has(div.post.highlighted + #commentQueryFor
 @media (prefers-reduced-motion: reduce) {
     .ios-ui * { transition: none !important; scroll-behavior: auto !important; }
 }
+
+/* ---- For You ---- */
+.ios-ui .for-you-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+.ios-ui .for-you-heading .feed-eyebrow { flex-basis: 100%; }
+.ios-ui .for-you-heading h1 { flex: 1; margin: 0; }
+.ios-ui .for-you-link { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; box-sizing: border-box; border: 1px solid var(--ios-line); border-radius: 22px; background: var(--ios-card); color: var(--ios-text); font-weight: 600; text-decoration: none; }
+.ios-ui .for-you-notice { margin: 8px 0; padding: 12px 16px; background: var(--ios-card); border: 1px solid var(--ios-line); border-radius: 12px; color: var(--ios-text); }
+.ios-ui .for-you-sort { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+.ios-ui .for-you-sort-label { display: flex; align-items: center; gap: 8px; color: var(--ios-muted); font-size: 14px; }
+.ios-ui .for-you-sort-select, .ios-ui .for-you-sort-submit { min-height: 44px; box-sizing: border-box; border: 1px solid var(--ios-line); border-radius: 8px; background: var(--ios-card); color: var(--ios-text); font-size: 16px; padding: 0 12px; }
+.ios-ui .for-you-meta { margin: 0 0 8px; color: var(--ios-muted); font-size: 12px; }
+.ios-ui .for-you-empty { padding: 24px 16px; text-align: center; background: var(--ios-card); border: 1px solid var(--ios-line); border-radius: 12px; }
+.ios-ui .for-you-attribution { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 4px; padding: 0 4px; }
+.ios-ui .for-you-reason { color: var(--ios-muted); font-size: 12px; min-width: 0; overflow-wrap: anywhere; }
+.ios-ui .for-you-attribution form { margin: 0; flex: none; }
+.ios-ui .for-you-hide { min-height: 44px; padding: 0 12px; border: 0; border-radius: 22px; background: transparent; color: var(--ios-muted); font-size: 12px; cursor: pointer; }
+.ios-ui .for-you-hide:focus-visible, .ios-ui .for-you-link:focus-visible { outline: 2px solid var(--ios-accent); outline-offset: 2px; }
+.ios-ui .discover-settings { max-width: 680px; margin: 0 auto; padding: 12px; box-sizing: border-box; }
+.ios-ui .discover-settings h1 { margin: 12px 0; }
+.ios-ui .discover-help, .ios-ui .discover-hint { color: var(--ios-muted); font-size: 14px; line-height: 1.4; }
+.ios-ui .discover-field { min-width: 0; margin: 0 0 20px; padding: 0; border: 0; box-sizing: border-box; }
+.ios-ui .discover-field > label, .ios-ui .discover-field legend { display: block; margin-bottom: 6px; font-weight: 600; color: var(--ios-text); }
+.ios-ui .discover-field textarea { display: block; width: 100%; max-width: 100%; box-sizing: border-box; padding: 12px; font-size: 16px; font-family: inherit; border: 1px solid var(--ios-line); border-radius: 12px; background: var(--ios-card); color: var(--ios-text); resize: vertical; }
+.ios-ui .discover-level label { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 12px; box-sizing: border-box; }
+.ios-ui .discover-level small { color: var(--ios-muted); margin-left: 6px; }
+.ios-ui .discover-settings #save { margin-bottom: 16px; }
+
+/* ==== Polish pass: spacing, alignment and rhythm ==== */
+/* Header actions: consistent icon buttons on mobile, quiet text links on desktop */
+.ios-ui #links a { border-radius: 50%; color: var(--ios-text); }
+.ios-ui #links a:hover { background: var(--ios-line); text-decoration: none; }
+.ios-ui #links svg { width: 22px; height: 22px; stroke: currentColor; }
+@media (min-width: 801px) {
+    .ios-ui #links { gap: 4px; }
+    .ios-ui #links a { border-radius: 22px; padding: 0 12px; gap: 6px; font-size: 14px; font-weight: 600; }
+    .ios-ui #links a svg { display: none; }
+}
+/* Search box: compact scope chip instead of a raw checkbox row */
+.ios-ui #searchbox #inside { gap: 6px; padding: 0 10px; border: 0; font-size: 12px; color: var(--ios-muted); white-space: nowrap; }
+.ios-ui #searchbox #restrict_sr { width: 16px; height: 16px; min-height: 0; margin: 0; }
+.ios-ui #searchbox button.submit { padding: 0 14px; border: 0; border-left: 1px solid var(--ios-line); }
+.ios-ui #searchbox button.submit svg { stroke: var(--ios-text); }
+
+/* Feed rhythm: one spacing scale (4/8/12/16) */
+.ios-ui .feed-heading { padding: 16px 16px 8px; }
+.ios-ui .feed-heading h1 { margin-top: 2px; }
+.ios-ui #column_one > #sort { margin: 0 0 12px; padding: 0 16px; }
+.ios-ui .post_header { margin: 12px 16px 6px; }
+.ios-ui .post_title { margin: 0 16px 10px; line-height: 1.32; }
+.ios-ui .post_body { padding: 0 16px; }
+.ios-ui .post_score { margin-left: 16px; }
+.ios-ui .post_footer { margin-right: 12px; }
+.ios-ui .post_thumbnail { margin-right: 16px; }
+/* Flair sits on its own line above the title, like the app */
+.ios-ui .post:not(.highlighted) .post_title .post_flair,
+.ios-ui .post.highlighted .post_title .post_flair { display: table; margin: 0 0 6px; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; line-height: 1.5; }
+.ios-ui .post_title :is(.nsfw, .spoiler) { margin-left: 6px; padding: 1px 6px; border-radius: 4px; font-size: 11px; vertical-align: 2px; }
+/* Media stays edge-to-edge inside the card */
+.ios-ui .post_media_content, .ios-ui .gallery { margin: 2px 0 6px; }
+
+/* Post detail: action row as pills, consistent with feed cards */
+.ios-ui .post.highlighted .post_header { margin-top: 16px; }
+.ios-ui .post.highlighted .post_title { font-size: 21px; margin-bottom: 12px; }
+.ios-ui .post.highlighted .post_body { margin-bottom: 12px; }
+.ios-ui .post.highlighted .post_footer { align-items: center; margin: 0 12px 0 0; padding: 4px 0; }
+.ios-ui .post.highlighted #post_links { gap: 4px; }
+.ios-ui .post.highlighted #post_links a { min-height: 36px; padding: 0 12px; border-radius: 18px; background: var(--ios-line); font-size: 13px; font-weight: 600; color: var(--ios-text); }
+.ios-ui .post.highlighted .post_footer > p { font-size: 13px; color: var(--ios-muted); }
+
+/* Comment toolbar: card with aligned controls */
+.ios-ui #commentQueryForms { display: flex; flex-direction: column; gap: 10px; margin: 8px 0 0; padding: 14px 16px; border-top: 1px solid var(--ios-line); }
+.ios-ui #commentQueryForms #sort { display: flex; align-items: center; gap: 8px; margin: 0; padding: 0; }
+.ios-ui #comment_count { flex: 1; margin: 0; font-size: 15px; font-weight: 700; }
+.ios-ui #comment_count #sorted_by { display: none; }
+.ios-ui #commentSortSelect { min-height: 36px; padding: 0 12px; border-radius: 18px; font-size: 14px; }
+.ios-ui #commentQueryForms #sort_submit { min-height: 36px; width: 36px; padding: 0; justify-content: center; border-radius: 18px; }
+.ios-ui #commentQueryForms .commentQuery { width: 100%; min-height: 40px; padding: 0 14px; box-sizing: border-box; border-radius: 20px; }
+
+/* Comments: drop the duplicate score column and gutter dots; slimmer, tighter nesting */
+.ios-ui .thread { padding: 4px 16px 8px; }
+.ios-ui .comment { padding: 6px 0 0; }
+.ios-ui .comment_left { display: none; }
+.ios-ui .comment_right { padding: 0 0 0 12px; border-left: 2px solid var(--ios-line); }
+.ios-ui .thread > .comment > .comment_right { padding-left: 0; border-left: 0; }
+.ios-ui .replies { margin: 0; padding: 0 0 0 4px; }
+.ios-ui .comment_data { min-height: 36px; gap: 2px 6px; list-style: none; }
+.ios-ui .comment_data::-webkit-details-marker { display: none; }
+.ios-ui .comment_data::marker { content: ""; }
+.ios-ui .comment_right:not([open]) > .comment_data { opacity: .65; }
+.ios-ui .comment_right:not([open]) > .comment_data::after { content: "+"; margin-left: auto; padding: 0 6px; font-weight: 700; }
+.ios-ui .comment_body { margin: 0 0 6px; padding: 0; }
+.ios-ui .deeper_replies { display: inline-flex; align-items: center; min-height: 36px; margin: 2px 0 4px 12px; font-size: 14px; font-weight: 600; color: var(--ios-accent); }
+@media (max-width: 500px) {
+    .ios-ui .replies > .comment { margin-left: 0; padding: 6px 0 0; }
+    .ios-ui .comment_right { padding: 0 0 0 10px; }
+    .ios-ui .replies { padding-left: 2px; }
+}
+
+/* Search page: grouped search form + result list */
+.ios-ui #search_sort { flex-direction: column; gap: 8px; margin: 12px 12px; padding: 12px; overflow: visible; background: var(--ios-card); border: 1px solid var(--ios-line); border-radius: 14px; box-shadow: none; }
+.ios-ui #search_sort > .search_widget_divider_box { flex-direction: column; align-items: stretch; gap: 8px; }
+.ios-ui #search_sort .search_widget_divider_box > * { width: auto; margin: 0; border: 0; background: var(--ios-line); border-radius: 10px; }
+.ios-ui #search_sort .search_widget_divider_box > .search_widget_divider_box { flex-direction: row; flex-wrap: wrap; background: transparent; }
+.ios-ui #search_sort .search_widget_divider_box > .search_widget_divider_box > * { flex: 1 1 120px; padding: 0 12px; background: var(--ios-line); border-radius: 10px; }
+.ios-ui #search_sort > #search, .ios-ui #search_sort #search { min-height: 44px; padding: 0 14px; }
+.ios-ui #search_sort #sort_submit { width: 100%; height: auto; min-height: 44px; justify-content: center; border: 0; border-radius: 10px; background: var(--ios-accent); }
+.ios-ui #search_sort #sort_submit svg { stroke: #fff; }
+.ios-ui #search_subreddits { margin: 0 12px 12px; overflow: hidden; background: var(--ios-card); border: 1px solid var(--ios-line); border-radius: 14px; box-shadow: none; }
+.ios-ui .search_subreddit { align-items: center; padding: 12px 16px; }
+.ios-ui .search_subreddit:not(:last-child) { border-bottom: 1px solid var(--ios-line); }
+.ios-ui .search_subreddit_header { margin-bottom: 2px; }
+.ios-ui .search_subreddit_name { font-size: 15px; }
+.ios-ui .search_subreddit_members, .ios-ui .search_subreddit_description { font-size: 13px; color: var(--ios-muted); opacity: 1; }
+.ios-ui #more_subreddits { min-height: 44px; align-items: center; font-size: 14px; color: var(--ios-accent); }
+@media (min-width: 801px) { .ios-ui #search_sort, .ios-ui #search_subreddits { margin-left: 0; margin-right: 0; } }
+
+/* Community card: left-aligned identity, tidy stats and buttons */
+.ios-ui #subreddit > summary, .ios-ui #sidebar > summary { padding: 0 16px; font-weight: 700; font-size: 14px; }
+.ios-ui #subreddit #top { display: flex; margin: 0 16px; border-bottom: 1px solid var(--ios-line); }
+.ios-ui #subreddit #top > * { flex: 1; padding: 10px 0; text-align: center; font-size: 14px; }
+.ios-ui #subreddit #top > div { border-bottom: 2px solid var(--ios-accent); font-weight: 700; }
+.ios-ui #subreddit #sub_meta, .ios-ui #subreddit #sub_meta * { text-align: left; }
+.ios-ui #sub_meta { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 16px; }
+.ios-ui #sub_icon { width: 56px; height: 56px; margin: 0 0 6px; }
+.ios-ui #sub_title { font-size: 19px; line-height: 1.2; }
+.ios-ui #sub_name { margin: 0; font-size: 13px; color: var(--ios-muted); }
+.ios-ui #sub_description:not(:empty) { margin: 6px 0 0; font-size: 14px; line-height: 1.45; }
+.ios-ui #sub_details { width: 100%; margin-top: 10px; row-gap: 2px; }
+.ios-ui #sub_details > label { font-size: 12px; font-weight: 600; color: var(--ios-muted); }
+.ios-ui #sub_details > div { font-size: 16px; font-weight: 700; }
+.ios-ui #sub_actions { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; margin-top: 12px; }
+.ios-ui #sub_actions > div { margin: 0; flex: 1 1 auto; }
+.ios-ui #sub_actions button { width: 100%; min-height: 40px; padding: 0 16px; font-size: 14px; font-weight: 700; }
+.ios-ui #sidebar_contents { font-size: 14px; line-height: 1.5; }
+
+/* Pagination: pills, centred (fallback when endless scrolling is unavailable) */
+.ios-ui main > * > footer { display: flex; justify-content: center; gap: 8px; margin: 16px 0 8px; }
+.ios-ui main > * > footer > a { min-height: 40px; padding: 0 20px; align-items: center; border-radius: 20px; background: var(--ios-card); border: 1px solid var(--ios-line); box-shadow: none; font-size: 14px; font-weight: 700; }
+
+/* Endless scrolling */
+.ios-ui main footer a[hidden] { display: none; }
+.ios-ui .infinite-status { display: flex; justify-content: center; align-items: center; gap: 10px; min-height: 56px; margin: 8px 0; font-size: 14px; color: var(--ios-muted); }
+.ios-ui .infinite-status[hidden] { display: none; }
+.ios-ui .infinite-spinner { width: 20px; height: 20px; border: 2px solid var(--ios-line); border-top-color: var(--ios-accent); border-radius: 50%; animation: ios-spin .8s linear infinite; }
+.ios-ui .infinite-retry { min-height: 36px; padding: 0 16px; border: 0; border-radius: 18px; background: var(--ios-line); color: var(--ios-text); font-weight: 600; cursor: pointer; }
+@keyframes ios-spin { to { transform: rotate(360deg); } }
+
+/* For You: tidy heading, sort row and attribution */
+.ios-ui .for-you-heading { display: grid; grid-template-columns: 1fr auto; align-items: end; column-gap: 12px; }
+.ios-ui .for-you-heading .feed-eyebrow, .ios-ui .for-you-heading h1 { grid-column: 1; }
+.ios-ui .for-you-heading .for-you-link { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+.ios-ui .for-you-notice { margin: 0 16px 12px; }
+.ios-ui .for-you-sort { display: flex; align-items: center; gap: 8px; margin: 0 16px 4px; }
+.ios-ui .for-you-sort-label { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ios-muted); }
+.ios-ui .for-you-sort :is(select, button) { min-height: 36px; padding: 0 14px; border: 0; border-radius: 18px; background: var(--ios-line); font-size: 14px; font-weight: 600; }
+.ios-ui .for-you-meta { margin: 0 16px 12px; font-size: 12px; line-height: 1.4; color: var(--ios-muted); }
+.ios-ui .for-you-entry { margin-bottom: 8px; }
+.ios-ui .for-you-entry .post { margin-bottom: 0; }
+.ios-ui .for-you-attribution { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 8px 0 16px; min-height: 36px; }
+.ios-ui .for-you-reason { font-size: 12px; font-weight: 600; color: var(--ios-muted); }
+.ios-ui .for-you-hide { min-height: 32px; padding: 0 12px; border: 0; border-radius: 16px; background: transparent; font-size: 12px; font-weight: 600; color: var(--ios-muted); }
+.ios-ui .for-you-hide:hover { background: var(--ios-line); color: var(--ios-text); }
+
+/* Curate page: section spacing */
+.ios-ui .discover-settings { display: flex; flex-direction: column; gap: 16px; padding: 16px; }
+.ios-ui .discover-settings h1 { margin: 0; font-size: 28px; }
+.ios-ui .discover-settings .discover-help { margin: 0; font-size: 14px; line-height: 1.5; color: var(--ios-muted); }
+.ios-ui .discover-settings form { display: flex; flex-direction: column; gap: 20px; }
+.ios-ui .discover-field { display: flex; flex-direction: column; gap: 6px; margin: 0; }
+.ios-ui .discover-field > label, .ios-ui .discover-level > legend { padding: 0 4px; font-size: 14px; font-weight: 600; color: var(--ios-muted); }
+.ios-ui .discover-field textarea { padding: 12px 14px; box-sizing: border-box; width: 100%; border: 1px solid var(--ios-line); border-radius: 12px; background: var(--ios-card); color: var(--ios-text); font: 16px/1.4 var(--ios-font); resize: vertical; }
+.ios-ui .discover-hint { margin: 0; font-size: 12px; color: var(--ios-muted); }
+.ios-ui .discover-level { padding: 0; border: 0; }
+.ios-ui .discover-level legend { padding: 0 0 6px; }
+.ios-ui .discover-level label { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 16px; background: var(--ios-card); border: 1px solid var(--ios-line); border-bottom-width: 0; }
+.ios-ui .discover-level label:first-of-type { border-radius: 12px 12px 0 0; }
+.ios-ui .discover-level label:last-of-type { border-bottom-width: 1px; border-radius: 0 0 12px 12px; }
+.ios-ui .discover-level input { width: 20px; height: 20px; min-height: 0; margin: 0; accent-color: var(--ios-accent); }
+.ios-ui .discover-level small { display: block; font-size: 12px; color: var(--ios-muted); }
+.ios-ui .discover-settings > .for-you-link:last-child { align-self: center; }
+
+/* Settings page breathing room */
+.ios-ui #settings { padding-top: 12px; }
+.ios-ui .for-you-settings-link { margin: 0 0 16px; }
+.ios-ui .for-you-settings-link a { display: flex; align-items: center; min-height: 48px; padding: 0 16px; border: 1px solid var(--ios-line); border-radius: 12px; background: var(--ios-card); font-weight: 600; }
+.ios-ui .prefs-group label { padding-right: 8px; line-height: 1.3; }
+
+/* For You header: title + Edit on one row, explanation below */
+.ios-ui .for-you-heading { grid-template-columns: 1fr auto; row-gap: 4px; padding-bottom: 12px; }
+.ios-ui .for-you-heading h1 { grid-column: 1; grid-row: 1; }
+.ios-ui .for-you-heading .for-you-link { grid-column: 2; grid-row: 1; align-self: center; }
+.ios-ui .for-you-heading .for-you-meta { grid-column: 1 / -1; grid-row: 2; margin: 0; font-size: 14px; }
+.ios-ui .for-you-entry.is-discovery .for-you-attribution { padding-top: 4px; }
+.ios-ui .for-you-empty { margin: 8px 16px; padding: 24px 20px; text-align: center; background: var(--ios-card); border: 1px solid var(--ios-line); border-radius: 14px; }
+.ios-ui .for-you-empty h2 { margin: 0 0 6px; font-size: 18px; }
+.ios-ui .for-you-empty p { margin: 0 0 16px; color: var(--ios-muted); font-size: 15px; line-height: 1.45; }
+.ios-ui .for-you-empty .for-you-link { display: inline-flex; background: var(--ios-accent); color: #fff; border: 0; }
+
+/* iOS-style back link */
+.ios-ui .for-you-back { display: inline-flex; align-items: center; gap: 2px; align-self: flex-start; min-height: 44px; margin: -8px 0 -8px -6px; padding: 0 6px; color: var(--ios-accent); font-size: 16px; font-weight: 500; }
+.ios-ui .for-you-back::before { content: ''; width: 10px; height: 10px; margin-right: 4px; border: solid currentColor; border-width: 0 0 2px 2px; transform: rotate(45deg); }
+.ios-ui .discover-settings { max-width: 680px; margin: 0 auto; box-sizing: border-box; }
+.ios-ui .discover-settings .discover-help { max-width: 62ch; }
+.ios-ui #save:focus-visible { outline: 2px solid var(--ios-text); outline-offset: 3px; }
+
+/* Grouped lists: section header sits above the group, rows form one rounded block */
+.ios-ui .prefs fieldset { background: transparent; border: 0; border-radius: 0; overflow: visible; }
+.ios-ui .prefs fieldset > legend { margin: 0; padding: 0 16px 6px; }
+.ios-ui .prefs .prefs-group { background: var(--ios-card); border: 1px solid var(--ios-line); border-bottom-width: 0; }
+.ios-ui .prefs .prefs-group:last-child { border-bottom-width: 1px; }
+.ios-ui .prefs legend + .prefs-group { border-top-width: 1px; border-radius: 12px 12px 0 0; }
+.ios-ui .prefs .prefs-group:last-child { border-radius: 0 0 12px 12px; }
+.ios-ui .prefs legend + .prefs-group:last-child { border-radius: 12px; }
+.ios-ui .discover-level label + label { margin-top: 0; }
+
+/* Settings: large title, tappable row with chevron, lightweight value pickers */
+.ios-ui .settings-title { margin: 4px 4px 16px; font-size: 32px; font-weight: 800; letter-spacing: -0.02em; }
+.ios-ui .for-you-settings-link { margin: 0 0 24px; }
+.ios-ui .for-you-settings-link a { gap: 8px; text-decoration: none; }
+.ios-ui .for-you-settings-link a > span:first-child { flex: 1; }
+.ios-ui .settings-row-detail { font-size: 14px; font-weight: 400; color: var(--ios-muted); }
+.ios-ui .for-you-settings-link a::after { content: ''; width: 8px; height: 8px; margin-left: 4px; border: solid var(--ios-muted); border-width: 2px 2px 0 0; transform: rotate(45deg); }
+.ios-ui .prefs select { min-height: 36px; padding: 0 28px 0 10px; border: 0; background-color: transparent; background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%); background-position: right 14px center, right 9px center; background-size: 5px 5px; background-repeat: no-repeat; color: var(--ios-muted); text-align: right; cursor: pointer; }
+.ios-ui .prefs select:hover { background-color: var(--ios-line); }
+.ios-ui .prefs select option { color: var(--text); background: var(--background); }
+
+/* In-feed swipeable gallery */
+.ios-ui .feed-gallery { position: relative; width: 100%; max-width: 100%; margin: 2px 0 6px; overflow: hidden; background: var(--ios-bg); }
+.ios-ui .feed-gallery-track { display: flex; max-height: min(70svh, 640px); overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
+.ios-ui .feed-gallery-track::-webkit-scrollbar { display: none; }
+.ios-ui .feed-gallery-track:focus-visible { outline: 2px solid var(--ios-accent); outline-offset: -2px; }
+.ios-ui .feed-gallery-slide { position: relative; flex: 0 0 100%; display: flex; align-items: center; justify-content: center; margin: 0; scroll-snap-align: center; scroll-snap-stop: always; }
+.ios-ui .feed-gallery-slide a { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; }
+.ios-ui .feed-gallery-slide img { display: block; width: 100%; height: 100%; max-height: min(70svh, 640px); object-fit: contain; }
+.ios-ui .feed-gallery-slide figcaption { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; padding: 24px 16px 28px; background: linear-gradient(transparent, #000a); color: #fff; font-size: 13px; line-height: 1.35; text-align: left; }
+.ios-ui .feed-gallery-count { position: absolute; top: 10px; right: 10px; padding: 3px 9px; border-radius: 12px; background: #000b; color: #fff; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; pointer-events: none; }
+.ios-ui .feed-gallery-dots { position: absolute; left: 0; right: 0; bottom: 8px; display: flex; justify-content: center; gap: 5px; pointer-events: none; }
+.ios-ui .feed-gallery-dots span { width: 6px; height: 6px; border-radius: 50%; background: #fff8; box-shadow: 0 0 2px #0006; transition: background-color .15s; }
+.ios-ui .feed-gallery-dots span.active { background: #fff; }
+.ios-ui .feed-gallery-nav { position: absolute; top: 50%; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; min-height: 36px; padding: 0; margin-top: -18px; border: 0; border-radius: 50%; background: #000a; color: #fff; cursor: pointer; opacity: 0; transition: opacity .15s; }
+.ios-ui .feed-gallery-nav svg { stroke: #fff; }
+.ios-ui .feed-gallery-nav.prev { left: 10px; }
+.ios-ui .feed-gallery-nav.next { right: 10px; }
+.ios-ui .feed-gallery-nav[hidden], .ios-ui .feed-gallery-nav:disabled { display: none; }
+.ios-ui .feed-gallery:hover .feed-gallery-nav, .ios-ui .feed-gallery-nav:focus-visible { opacity: 1; }
+@media (hover: none) { .ios-ui .feed-gallery-nav { display: none; } }
+.ios-ui .post_blurred .feed-gallery-slide img { filter: blur(1.5rem); }
+.ios-ui .post_blurred .feed-gallery:hover .feed-gallery-slide img { filter: none; }
+@media (prefers-reduced-motion: reduce) { .ios-ui .feed-gallery-dots span, .ios-ui .feed-gallery-nav { transition: none; } }
+
+/* Shared dropdown (enhances every <select>); visually matches the Feeds menu */
+.ios-ui .ios-select { position: relative; display: inline-flex; flex: none; max-width: 100%; vertical-align: middle; }
+.ios-ui .ios-select-native { position: absolute !important; width: 1px !important; height: 1px !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; border: 0 !important; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; opacity: 0; pointer-events: none; }
+.ios-ui .ios-select-button { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; min-height: 40px; margin: 0; padding: 0 12px; border: 0; border-radius: 12px; background: transparent; color: var(--ios-text); font: 600 15px/1 var(--ios-font); cursor: pointer; white-space: nowrap; }
+.ios-ui .ios-select-value { overflow: hidden; text-overflow: ellipsis; }
+.ios-ui .ios-select-chevron { flex: none; stroke: currentColor; transition: transform 150ms ease; }
+.ios-ui .ios-select-button:hover, .ios-ui .ios-select.is-open > .ios-select-button { background: var(--ios-line); }
+.ios-ui .ios-select.is-open .ios-select-chevron { transform: rotate(180deg); }
+.ios-ui .ios-select-button:focus-visible { outline: 2px solid var(--ios-accent); outline-offset: 2px; }
+.ios-ui .ios-select-menu { position: absolute; z-index: 40; top: calc(100% + 8px); left: 0; display: flex; flex-direction: column; min-width: max(100%, 200px); max-width: min(320px, calc(100vw - 24px)); max-height: 60vh; margin: 0; padding: 8px; box-sizing: border-box; overflow-y: auto; list-style: none; background: var(--ios-bar); border: 1px solid var(--ios-line); border-radius: 16px; box-shadow: 0 8px 32px #0003; }
+.ios-ui .ios-select-menu[hidden] { display: none; }
+.ios-ui .ios-select.opens-up > .ios-select-menu { top: auto; bottom: calc(100% + 8px); }
+.ios-ui .ios-select.aligns-right > .ios-select-menu { left: auto; right: 0; }
+.ios-ui .ios-select-option { display: flex; align-items: center; min-height: 40px; padding: 10px 12px; box-sizing: border-box; border-radius: 10px; color: var(--ios-text); font-size: 15px; line-height: 1.25; text-align: left; cursor: pointer; user-select: none; }
+.ios-ui .ios-select-option.is-active { background: var(--ios-line); }
+.ios-ui .ios-select-option[aria-selected='true'] { font-weight: 700; }
+.ios-ui .ios-select-option { gap: 16px; }
+.ios-ui .ios-select-option[aria-selected='true']::after { content: ''; flex: none; width: 5px; height: 10px; margin: -4px 4px 0 auto; border: solid var(--ios-accent); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.ios-ui .ios-select-option[aria-disabled='true'] { opacity: .45; cursor: default; }
+/* Settings rows: value sits on the right, muted, like the Feeds trigger */
+.ios-ui .prefs-group .ios-select { margin-left: auto; }
+.ios-ui .prefs-group .ios-select-button { color: var(--ios-muted); font-weight: 500; }
+/* Toolbars (comment sort, search, timeframe): filled pill so they read as controls */
+.ios-ui :is(#commentQueryForms, #search_sort, #sort, .for-you-sort) .ios-select-button { min-height: 36px; background: var(--ios-line); border-radius: 18px; }
+.ios-ui :is(#commentQueryForms, #search_sort, #sort) .ios-select.is-open > .ios-select-button { background: var(--ios-line); filter: brightness(1.1); }
+.ios-ui #search_sort .search_widget_divider_box > .ios-select { flex: 1 1 120px; background: transparent; padding: 0; }
+.ios-ui #search_sort .search_widget_divider_box > .ios-select > .ios-select-button { width: 100%; justify-content: space-between; border-radius: 10px; min-height: 44px; }
+@media (prefers-reduced-motion: reduce) { .ios-ui .ios-select-chevron { transition: none; } }
+
+/* Post action pills: one size for score, comments and open post (matches the score pill).
+   A transparent ::after keeps a 44px tap target without making the pills taller. */
+.ios-ui .post .post_score,
+.ios-ui .post .post_actions :is(.post_comments, .post-open) { position: relative; box-sizing: border-box; height: 36px; min-height: 36px; padding: 0 12px; gap: 6px; border-radius: 18px; font-size: 13px; font-weight: 700; line-height: 1; }
+.ios-ui .post .post_actions :is(.post_comments, .post-open) svg { width: 18px; height: 18px; }
+.ios-ui .post .post_actions :is(.post_comments, .post-open)::after { content: ''; position: absolute; inset: -4px 0; }
+.ios-ui .post .post_actions { gap: 8px; }
+
+/* Move-to-another-browser section */
+.ios-ui .settings-section-title { margin: 32px 4px 6px; font-size: 20px; font-weight: 700; }
+.ios-ui #settings_note { margin: 0 0 24px; font-size: 14px; line-height: 1.5; opacity: 1; color: var(--ios-muted); }
+.ios-ui #settings_note > p { margin: 0 4px 14px; max-width: 62ch; }
+.ios-ui .settings-transfer { display: flex; flex-direction: column; gap: 6px; padding: 16px; background: var(--ios-card); border: 1px solid var(--ios-line); border-radius: 12px; }
+.ios-ui .settings-transfer form { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.ios-ui .settings-transfer label { font-size: 14px; font-weight: 600; color: var(--ios-text); }
+.ios-ui .settings-transfer-row { display: flex; gap: 8px; }
+.ios-ui .settings-transfer-row input { flex: 1; min-width: 0; min-height: 40px; padding: 0 12px; box-sizing: border-box; border: 1px solid var(--ios-line); border-radius: 10px; background: var(--ios-bg); color: var(--ios-text); font-size: 15px; }
+.ios-ui .settings-transfer-row button { flex: none; min-height: 40px; margin: 0; padding: 0 16px; border-radius: 10px; font-size: 14px; font-weight: 700; }
+.ios-ui .settings-transfer-hint, .ios-ui .settings-transfer-link { margin: 0; font-size: 13px; color: var(--ios-muted); }
+.ios-ui .settings-transfer-link { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--ios-line); }
+.ios-ui .settings-transfer-link a { color: var(--ios-accent); font-weight: 600; }

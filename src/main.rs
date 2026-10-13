@@ -12,7 +12,7 @@ use log::{info, warn};
 use redlib::client::{canonical_path, proxy, rate_limit_check, CLIENT};
 use redlib::server::{self, RequestExt};
 use redlib::utils::{error, redirect, ThemeAssets};
-use redlib::{config, duplicates, headers, instance_info, post, search, settings, subreddit, user};
+use redlib::{config, discovery, duplicates, headers, instance_info, post, search, settings, subreddit, user};
 
 use redlib::client::OAUTH_CLIENT;
 
@@ -225,6 +225,15 @@ async fn main() {
 		.at("/feed-video.js")
 		.get(|_| resource(include_str!("../static/feed-video.js"), "text/javascript", false).boxed());
 	app
+		.at("/select.js")
+		.get(|_| resource(include_str!("../static/select.js"), "text/javascript", false).boxed());
+	app
+		.at("/gallery.js")
+		.get(|_| resource(include_str!("../static/gallery.js"), "text/javascript", false).boxed());
+	app
+		.at("/infinite-scroll.js")
+		.get(|_| resource(include_str!("../static/infinite-scroll.js"), "text/javascript", false).boxed());
+	app
 		.at("/manifest.json")
 		.get(|_| resource(include_str!("../static/manifest.json"), "application/json", false).boxed());
 	app.at("/robots.txt").get(|_| {
@@ -348,6 +357,14 @@ async fn main() {
 	app.at("/r/:sub/about/sidebar").get(|r| subreddit::sidebar(r).boxed());
 
 	app.at("/r/:sub/:sort").get(|r| subreddit::community(r).boxed());
+
+	// Curated favorites and related-community discovery.
+	app.at("/for-you").get(|r| discovery::feed(r).boxed());
+	app
+		.at("/for-you/settings")
+		.get(|r| discovery::settings(r).boxed())
+		.post(|r| discovery::configure(r).boxed());
+	app.at("/for-you/hide").post(|r| discovery::hide(r).boxed());
 
 	// Front page
 	app.at("/").get(|r| subreddit::community(r).boxed());

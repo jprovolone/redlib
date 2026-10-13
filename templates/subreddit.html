@@ -20,7 +20,6 @@
 		{% if !is_filtered %}
 		<div id="column_one">
 			<header class="feed-heading">
-				<span class="feed-eyebrow">Your daily scroll</span>
 				<h1>{% if sub.name.is_empty() %}Home{% else if sub.name == "popular" %}Popular{% else if sub.name == "all" %}All{% else %}r/{{ sub.name }}{% endif %}</h1>
 			</header>
 			<form id="sort" aria-label="Sort posts">
@@ -61,7 +60,7 @@
 			{% if all_posts_filtered %}
 				 <center>(All content on this page has been filtered)</center>
 			{% else %}
-			<div id="posts">
+			<div id="posts" data-infinite-list>
 			{% for post in posts %}
 			{% if !(post.flags.nsfw && prefs.show_nsfw != "on") %}
 			<hr class="sep" />

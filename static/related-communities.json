@@ -1,0 +1,17 @@
+[
+  {"topic":"technology","communities":["technology","technews","gadgets","hardware"]},
+  {"topic":"programming","communities":["programming","learnprogramming","coding","softwareengineering"]},
+  {"topic":"linux","communities":["linux","linuxquestions","linux4noobs","opensource"]},
+  {"topic":"gaming","communities":["gaming","games","pcgaming","patientgamers"]},
+  {"topic":"photography","communities":["photography","askphotography","photocritique","analog"]},
+  {"topic":"cooking","communities":["cooking","askculinary","recipes","baking"]},
+  {"topic":"science","communities":["science","askscience","biology","chemistry"]},
+  {"topic":"space","communities":["space","astronomy","astrophotography","nasa"]},
+  {"topic":"fitness","communities":["fitness","bodyweightfitness","running","weightlifting"]},
+  {"topic":"gardening","communities":["gardening","vegetablegardening","houseplants","horticulture"]},
+  {"topic":"books","communities":["books","booksuggestions","suggestmeabook","bookclub"]},
+  {"topic":"music","communities":["music","listentothis","letstalkmusic","musictheory"]},
+  {"topic":"movies","communities":["movies","flicks","truefilm","moviesuggestions"]},
+  {"topic":"news","communities":["news","worldnews","inthenews","neutralnews"]},
+  {"topic":"sports","communities":["sports","soccer","basketball","baseball"]}
+]

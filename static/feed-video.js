@@ -1,14 +1,16 @@
 // @license http://www.gnu.org/licenses/agpl-3.0.html AGPL-3.0
+// Muted in-feed autoplay: the most visible video (>=50%) plays, others pause.
+// Exposes window.redlibFeedVideo.register(root) so endless scrolling can add
+// videos that arrive after page load.
 (function () {
-    var videos = Array.prototype.slice.call(document.querySelectorAll('video[data-feed-video]'));
-    if (!videos.length) return;
-
+    var videos = [];
     var connection = navigator.connection || {};
     var motionQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
     var autoplayAllowed = !(motionQuery && motionQuery.matches) && !connection.saveData;
     var ratios = new Map();
     var userPaused = new Set();
     var expectedPause = new Set();
+    var observer = null;
 
     function safePlay(video) {
         try {
@@ -50,7 +52,7 @@
                     video.dispatchEvent(new CustomEvent('feed-video-activate'));
                     safePlay(video);
                 }
-            } else {
+            } else if (video.dataset.feedActive || !video.paused) {
                 delete video.dataset.feedActive;
                 video.dispatchEvent(new CustomEvent('feed-video-deactivate'));
                 pauseByScript(video);
@@ -66,7 +68,9 @@
         button.setAttribute('aria-label', video.muted ? 'Unmute video' : 'Mute video');
     }
 
-    videos.forEach(function (video) {
+    function setup(video) {
+        video.dataset.feedRegistered = 'true';
+        videos.push(video);
         video.defaultMuted = true;
         video.muted = true;
         var wrapper = video.closest('.feed-video');
@@ -101,19 +105,26 @@
         video.addEventListener('play', function () {
             userPaused.delete(video);
         });
-    });
+
+        if (observer) observer.observe(video);
+    }
 
     if ('IntersectionObserver' in window) {
-        var observer = new IntersectionObserver(function (entries) {
+        observer = new IntersectionObserver(function (entries) {
             entries.forEach(function (entry) {
                 ratios.set(entry.target, entry.isIntersecting ? entry.intersectionRatio : 0);
                 if (entry.intersectionRatio < 0.5) userPaused.delete(entry.target);
             });
             update();
         }, { threshold: [0, 0.25, 0.5, 0.75, 1] });
-        videos.forEach(function (video) { observer.observe(video); });
     }
 
+    function register(root) {
+        (root || document).querySelectorAll('video[data-feed-video]:not([data-feed-registered])').forEach(setup);
+    }
+
+    window.redlibFeedVideo = { register: register };
+    register(document);
     document.addEventListener('visibilitychange', update);
 })();
 // @license-end

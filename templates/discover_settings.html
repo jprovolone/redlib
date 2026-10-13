@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% import "utils.html" as utils %}
+
+{% block title %}Edit For You - Redlib{% endblock %}
+
+{% block search %}
+	{% call utils::search("", "") %}
+{% endblock %}
+
+{% block subscriptions %}
+	{% call utils::sub_list("") %}
+{% endblock %}
+
+{% block content %}
+<div class="discover-settings">
+	<a class="for-you-back" href="/for-you">For You</a>
+	<h1>Edit For You</h1>
+	{% if !notice.is_empty() %}
+	<p class="settings-saved" role="status">{{ notice }}</p>
+	{% endif %}
+	<p class="discover-help">For You shows your favorite communities, mixed with posts from communities closely related to them. Suggestions come from a built-in list of related communities, or from Reddit's community search for favorites that aren't on it. Your browsing isn't used.</p>
+	<form action="/for-you/settings" method="POST">
+		<div class="discover-field">
+			<label for="discover_favorites">Favorite communities</label>
+			<textarea id="discover_favorites" name="favorites" rows="5" autocapitalize="none" autocomplete="off" spellcheck="false" aria-describedby="discover_favorites_help" placeholder="photography, cooking, space">{{ favorites }}</textarea>
+			<p id="discover_favorites_help" class="discover-hint">Community names, separated by commas or new lines. Starts with your subscriptions, and subscribing to a community adds it here.</p>
+		</div>
+		<fieldset class="discover-field discover-level">
+			<legend>How much to explore</legend>
+			<label><input type="radio" name="discovery_level" value="low" {% if discovery_level == "low" %}checked{% endif %}> <span>Mostly favorites <small>About 1 in 5 posts is a suggestion</small></span></label>
+			<label><input type="radio" name="discovery_level" value="balanced" {% if discovery_level == "balanced" || (discovery_level != "low" && discovery_level != "high") %}checked{% endif %}> <span>Balanced <small>About 1 in 3 posts is a suggestion</small></span></label>
+			<label><input type="radio" name="discovery_level" value="high" {% if discovery_level == "high" %}checked{% endif %}> <span>Explore more <small>About half of posts are suggestions</small></span></label>
+		</fieldset>
+		<div class="discover-field">
+			<label for="discover_excluded">Communities to never suggest</label>
+			<textarea id="discover_excluded" name="excluded" rows="3" autocapitalize="none" autocomplete="off" spellcheck="false" aria-describedby="discover_excluded_help">{{ excluded }}</textarea>
+			<p id="discover_excluded_help" class="discover-hint">"Not interested" adds communities here. Remove a name to see it again.</p>
+		</div>
+		<button id="save" type="submit">Save For You</button>
+	</form>
+</div>
+{% endblock %}

@@ -44,7 +44,7 @@
 		{% if subreddits.len() > 0 || params.typed == "sr_user" %}
 		<div id="search_subreddits">
 			{% if params.typed == "sr_user" %}
-			<a href="?q={{ params.q }}&sort={{ params.sort }}&t={{ params.t }}" class="search_subreddit" id="more_subreddits">← Back to post/comment results</a>
+			<a href="?q={{ params.q }}&sort={{ params.sort }}&t={{ params.t }}" class="search_subreddit" id="more_subreddits">Back to posts and comments</a>
 			{% endif %}
 			{% for subreddit in subreddits %}
 			<a href="{{ subreddit.url }}" class="search_subreddit">
@@ -60,7 +60,7 @@
 			</a>
 			{% endfor %}
 			{% if params.typed != "sr_user" %}
-			<a href="?q={{ params.q }}&sort={{ params.sort }}&t={{ params.t }}&type=sr_user" class="search_subreddit" id="more_subreddits">More subreddit results →</a>
+			<a href="?q={{ params.q }}&sort={{ params.sort }}&t={{ params.t }}&type=sr_user" class="search_subreddit" id="more_subreddits">More communities</a>
 			{% endif %}
 		</div>
 		{% endif %}
@@ -79,6 +79,7 @@
 		{% else if is_filtered %}
 			<span class="listing_warn">(Content from r/{{ sub }} has been filtered)</span>
 		{% else if params.typed != "sr_user" %}
+			<div id="posts" data-infinite-list>
 			{% for post in posts %}
 				{% if post.flags.nsfw && prefs.show_nsfw != "on" %}
 				{% else if !post.title.is_empty() %}
@@ -105,6 +106,7 @@
 					</div>
 				{% endif %}
 			{% endfor %}
+			</div>
 		{% endif %}
 		{% if prefs.use_hls == "on" %}
 		<script src="/hls.min.js"></script>

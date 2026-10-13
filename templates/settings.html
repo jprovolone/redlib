@@ -13,6 +13,8 @@
 
 {% block content %}
 <div id="settings">
+	<h1 class="settings-title">Settings</h1>
+	<p class="for-you-settings-link"><a href="/for-you/settings"><span>For You</span><span class="settings-row-detail">Favorites and suggestions</span></a></p>
 	{% if url == "/settings?saved=1" %}
 	<p class="settings-saved" role="status">✓ Settings saved</p>
 	{% endif %}
@@ -21,7 +23,7 @@
 			<fieldset>
 				<legend>Appearance</legend>
 				<div class="prefs-group">
-					<label for="theme">Theme:</label>
+					<label for="theme">Theme</label>
 					<select name="theme" id="theme">
 						{% call utils::options(prefs.theme, prefs.available_themes, "system") %}
 					</select>
@@ -36,19 +38,22 @@
 						prefs.remove_default_feeds=="on" %}checked{% endif %}>
 				</div>
 				<div class="prefs-group">
-					<label for="front_page">Front page:</label>
+					<label for="front_page">Home feed</label>
 					<select name="front_page" id="front_page">
-						{% call utils::options(prefs.front_page, ["default", "popular", "all"], "default") %}
+						<option value="default" {% if prefs.front_page == "default" || prefs.front_page.is_empty() %}selected{% endif %}>Subscriptions</option>
+						<option value="for_you" {% if prefs.front_page == "for_you" %}selected{% endif %}>For You</option>
+						<option value="popular" {% if prefs.front_page == "popular" %}selected{% endif %}>Popular</option>
+						<option value="all" {% if prefs.front_page == "all" %}selected{% endif %}>All</option>
 					</select>
 				</div>
 				<div class="prefs-group">
-					<label for="layout">Layout:</label>
+					<label for="layout">Layout</label>
 					<select name="layout" id="layout">
 						{% call utils::options(prefs.layout, ["card", "clean", "compact"], "card") %}
 					</select>
 				</div>
 				<div class="prefs-group">
-					<label for="wide">Wide UI:</label>
+					<label for="wide">Wide UI</label>
 					<input type="hidden" value="off" name="wide">
 					<input type="checkbox" name="wide" id="wide" {% if prefs.wide=="on" %}checked{% endif %}>
 				</div>
@@ -56,40 +61,40 @@
 			<fieldset>
 				<legend>Content</legend>
 				<div class="prefs-group">
-					<label for="video_quality">Video quality:</label>
+					<label for="video_quality">Video quality</label>
 					<select name="video_quality" id="video_quality">
 						{% call utils::options(prefs.video_quality, ["best", "medium", "worst"], "best") %}
 					</select>
 				</div>
 				<div class="prefs-group">
-					<label for="post_sort" title="Applies only to subreddit feeds">Default subreddit post sort:</label>
+					<label for="post_sort" title="Applies only to subreddit feeds">Default subreddit post sort</label>
 					<select name="post_sort">
 						{% call utils::options(prefs.post_sort, ["hot", "new", "top", "rising", "controversial"], "hot")
 						%}
 					</select>
 				</div>
 				<div class="prefs-group">
-					<label for="comment_sort">Default comment sort:</label>
+					<label for="comment_sort">Default comment sort</label>
 					<select name="comment_sort" id="comment_sort">
 						{% call utils::options(prefs.comment_sort, ["confidence", "top", "new", "controversial", "old"],
 						"confidence") %}
 					</select>
 				</div>
 				<div class="prefs-group">
-					<label for="blur_spoiler">Blur spoiler previews:</label>
+					<label for="blur_spoiler">Blur spoiler previews</label>
 					<input type="hidden" value="off" name="blur_spoiler">
 					<input type="checkbox" name="blur_spoiler" id="blur_spoiler" {% if prefs.blur_spoiler=="on"
 						%}checked{% endif %}>
 				</div>
 				{% if !crate::utils::sfw_only() %}
 				<div class="prefs-group">
-					<label for="show_nsfw">Show NSFW posts:</label>
+					<label for="show_nsfw">Show NSFW posts</label>
 					<input type="hidden" value="off" name="show_nsfw">
 					<input type="checkbox" name="show_nsfw" id="show_nsfw" {% if prefs.show_nsfw=="on" %}checked{% endif
 						%}>
 				</div>
 				<div class="prefs-group">
-					<label for="blur_nsfw">Blur NSFW previews:</label>
+					<label for="blur_nsfw">Blur NSFW previews</label>
 					<input type="hidden" value="off" name="blur_nsfw">
 					<input type="checkbox" name="blur_nsfw" id="blur_nsfw" {% if prefs.blur_nsfw=="on" %}checked{% endif
 						%}>
@@ -186,33 +191,34 @@
 	{% endif %}
 
 	<div id="settings_note">
-		<p><b>Note:</b> settings and subscriptions are saved in browser cookies. Clearing your cookies will reset them.
-		</p>
-		<br>
-		{% match prefs.to_urlencoded() %}
-		{% when Ok with (encoded_prefs) %}
-		<p>You can restore your current settings and subscriptions after clearing your cookies using <a
-				href="/settings/restore/?{{ encoded_prefs }}">this link</a>.</p>
-		{% when Err with (err) %}
-		<p>There was an error creating your restore link: {{ err }}</p>
-		<p>Please report this issue</p>
-		{% endmatch %}
-		<br />
-		<div>
+		<h2 class="settings-section-title">Move to another browser</h2>
+		<p>Settings, subscriptions and For You are saved in this browser's cookies, so clearing cookies resets them. Use the code or link below to bring them to another browser.</p>
+		<div class="settings-transfer">
 			<script src="/copy.js"></script>
-			<label for="bincode_str">Or, export/import here (be sure to save first):</label>
-			<br />
-			<input type="text" id="bincode_str" name="bincode_str"
-				value="{% match prefs.to_bincode_str() %}{% when Ok with (bincode_str) %}{{ bincode_str }}{% when Err with (err) %}Error: {{ err }}{% endmatch %}"
-				readonly>
-			<button id="copy" class="copy">Copy</button>
+			<label for="bincode_str">Your settings code</label>
+			<div class="settings-transfer-row">
+				<input type="text" id="bincode_str" name="bincode_str"
+					value="{% match export_code %}{% when Ok with (code) %}{{ code }}{% when Err with (err) %}Couldn't create a code: {{ err }}{% endmatch %}"
+					readonly>
+				<button id="copy" class="copy" type="button">Copy</button>
+			</div>
+			<p class="settings-transfer-hint">Save any changes above first so the code includes them.</p>
 
-			<br />
 			<form action="/settings/encoded-restore/" method="POST">
-				<input type="text" id="encoded_prefs" name="encoded_prefs" value=""
-					placeholder="Paste your encoded settings here">
-				<button class="import" type="submit">Import</button>
+				<label for="encoded_prefs">Import a code</label>
+				<div class="settings-transfer-row">
+					<input type="text" id="encoded_prefs" name="encoded_prefs" value="" placeholder="Paste a settings code" required>
+					<button class="import" type="submit">Import</button>
+				</div>
+				<p class="settings-transfer-hint">Replaces this browser's settings, subscriptions and For You.</p>
 			</form>
+
+			{% match restore_query %}
+			{% when Ok with (query) %}
+			<p class="settings-transfer-link">Or bookmark your <a href="/settings/restore/?{{ query }}">restore link</a> and open it in the other browser.</p>
+			{% when Err with (err) %}
+			<p class="settings-transfer-link">Couldn't create a restore link: {{ err }}</p>
+			{% endmatch %}
 		</div>
 	</div>
 </div>

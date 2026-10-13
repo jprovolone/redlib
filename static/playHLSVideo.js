@@ -136,8 +136,14 @@
         }
     }
 
-    document
-        .querySelectorAll("video source[type='application/vnd.apple.mpegurl']")
-        .forEach(setup);
+    function setupWithin(root) {
+        (root || document)
+            .querySelectorAll("video source[type='application/vnd.apple.mpegurl']")
+            .forEach(setup);
+    }
+
+    // Endless scrolling calls this for newly appended posts.
+    window.redlibSetupHls = setupWithin;
+    setupWithin(document);
 })();
 // @license-end

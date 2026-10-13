@@ -61,6 +61,18 @@ static GEO_FILTER_MATCH: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"geo_fil
 
 // SERVICES
 pub async fn community(req: Request<Body>) -> Result<Response<Body>, String> {
+	// A For You front page is served by the discovery feed. Front-page sorts
+	// (e.g. /hot) map onto For You sorts rather than a non-existent r/for_you.
+	if req.param("sub").is_none() && setting(&req, "front_page") == "for_you" {
+		if req.uri().path() == "/" {
+			return crate::discovery::feed(req).await;
+		}
+		let sort = req.param("sort").or_else(|| req.param("id")).unwrap_or_default();
+		return Ok(redirect(&format!(
+			"/for-you?sort={}",
+			if matches!(sort.as_str(), "new" | "top") { sort.as_str() } else { "hot" }
+		)));
+	}
 	// Build Reddit API path
 	let root = req.uri().path() == "/";
 	let query = req.uri().query().unwrap_or_default().to_string();
@@ -303,6 +315,7 @@ pub async fn subscriptions_filters(req: Request<Body>) -> Result<Response<Body>,
 	};
 
 	// Find each subreddit name (separated by '+') in sub parameter
+	let mut changed_parts: Vec<String> = Vec::new();
 	for part in sub.split('+').filter(|x| x != &"") {
 		// Retrieve display name for the subreddit
 		let display;
@@ -323,6 +336,7 @@ pub async fn subscriptions_filters(req: Request<Body>) -> Result<Response<Body>,
 		};
 
 		// Modify sub list based on action
+		changed_parts.push(part.to_owned());
 		if action.contains(&"subscribe".to_string()) && !sub_list.contains(&part.to_owned()) {
 			// Add each sub name to the subscribed list
 			sub_list.push(part.to_owned());
@@ -355,6 +369,15 @@ pub async fn subscriptions_filters(req: Request<Body>) -> Result<Response<Body>,
 	};
 
 	let mut response = redirect(&path);
+
+	// Subscribing also adds the community to a saved For You favorites list (and
+	// unsubscribing removes it). Path segments are matched exactly, so
+	// "subscribe" never matches "unsubscribe" (and trailing slashes are fine).
+	if action.iter().any(|a| a == "subscribe") {
+		crate::discovery::sync_favorites(&req, &mut response, &changed_parts, true);
+	} else if action.iter().any(|a| a == "unsubscribe") {
+		crate::discovery::sync_favorites(&req, &mut response, &changed_parts, false);
+	}
 
 	// If sub_list is empty remove all subscriptions cookies, otherwise update them and remove old ones
 	if sub_list.is_empty() {
@@ -718,6 +741,25 @@ fn get_mime_type(url: &str) -> &'static str {
 #[cfg(test)]
 mod tests {
 	use super::*;
+
+	#[tokio::test]
+	async fn for_you_front_page_serves_for_you_without_reddit_requests() {
+		// No favorites or subscriptions: the For You feed renders its empty state offline.
+		let req = Request::builder().uri("/").header("cookie", "front_page=for_you").body(Body::empty()).unwrap();
+		let response = community(req).await.unwrap();
+		assert_eq!(response.status(), 200);
+		let body = hyper::body::to_bytes(response.into_body()).await.unwrap();
+		let html = String::from_utf8_lossy(&body);
+		assert!(html.contains("<h1>For You</h1>"));
+		// Home stands in for For You, so the separate tab is not duplicated.
+		assert!(!html.contains("<span>For You</span>"));
+
+		// Without router params the sort is unknown, so it falls back to Hot.
+		let req = Request::builder().uri("/new").header("cookie", "front_page=for_you").body(Body::empty()).unwrap();
+		let response = community(req).await.unwrap();
+		assert!(response.status().is_redirection());
+		assert_eq!(response.headers()["location"], "/for-you?sort=hot");
+	}
 
 	#[tokio::test(flavor = "multi_thread")]
 	async fn test_fetching_subreddit() {

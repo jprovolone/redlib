@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% import "utils.html" as utils %}
+
+{% block title %}For You - Redlib{% endblock %}
+
+{% block search %}
+	{% call utils::search("", "") %}
+{% endblock %}
+
+{% block subscriptions %}
+	{% call utils::sub_list("") %}
+{% endblock %}
+
+{% block body %}
+	<main>
+		<div id="column_one" class="for-you">
+			<header class="feed-heading for-you-heading">
+				<h1>For You</h1>
+				<a class="for-you-link" href="/for-you/settings">Edit</a>
+				<p class="for-you-meta">{{ discovery_label }}, chosen from your {{ favorite_count }} favorite{% if favorite_count != 1 %}s{% endif %}.</p>
+			</header>
+
+			{% if !notice.is_empty() %}
+			<p class="for-you-notice" role="status">{{ notice }}</p>
+			{% endif %}
+
+			<div id="sort" role="navigation" aria-label="Sort For You">
+				<div id="sort_options">
+					<a href="/for-you?sort=hot" {% if !url.contains("sort=new") && !url.contains("sort=top") %}class="selected" aria-current="page"{% endif %}>Hot</a>
+					<a href="/for-you?sort=new" {% if url.contains("sort=new") %}class="selected" aria-current="page"{% endif %}>New</a>
+					<a href="/for-you?sort=top" {% if url.contains("sort=top") %}class="selected" aria-current="page"{% endif %}>Top today</a>
+				</div>
+			</div>
+
+			{% if entries.is_empty() %}
+			<div class="for-you-empty">
+				<h2>Pick a few favorite communities</h2>
+				<p>For You shows posts from them, plus posts from closely related communities.</p>
+				<a class="for-you-link" href="/for-you/settings">Choose favorites</a>
+			</div>
+			{% else %}
+			<div id="posts" data-infinite-list>
+			{% for entry in entries %}
+			{% let post = entry.post %}
+			<hr class="sep" />
+			<div class="for-you-entry{% if entry.discovery %} is-discovery{% endif %}">
+				{% if entry.discovery %}
+				<div class="for-you-attribution">
+					<span class="for-you-reason">{{ entry.reason }}</span>
+					<form action="/for-you/hide" method="POST">
+						<input type="hidden" name="community" value="{{ entry.post.community }}">
+						<button class="for-you-hide" type="submit" aria-label="Stop showing r/{{ entry.post.community }}">Not interested</button>
+					</form>
+				</div>
+				{% endif %}
+				{% call utils::post_in_list(post) %}
+			</div>
+			{% endfor %}
+			{% if prefs.use_hls == "on" %}
+			<script src="/hls.min.js"></script>
+			<script src="/playHLSVideo.js"></script>
+			{% endif %}
+			</div>
+			{% endif %}
+
+			<footer>
+				{% if !previous_url.is_empty() %}
+				<a href="{{ previous_url }}" accesskey="P">First page</a>
+				{% endif %}
+				{% if !next_url.is_empty() %}
+				<a href="{{ next_url }}" accesskey="N">NEXT</a>
+				{% endif %}
+			</footer>
+		</div>
+	</main>
+{% endblock %}

@@ -2,6 +2,7 @@
 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 	{% if name == "home" %}<path d="m3 10 9-7 9 7v10H15v-7H9v7H3z"/>
 	{% else if name == "popular" %}<path d="m3 17 6-6 4 4 8-10M15 5h6v6"/>
+	{% else if name == "discover" %}<circle cx="12" cy="12" r="9"/><path d="m16 8-2.5 5.5L8 16l2.5-5.5z"/>
 	{% else if name == "search" %}<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>
 	{% else if name == "settings" %}<path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/>
 	{% else if name == "comments" %}<path d="M4 4h16v12H10l-6 4z"/>
@@ -49,14 +50,15 @@
 	<details id="feeds" class="feed-menu">
 		<summary aria-label="Choose a feed"><span>Feeds</span><svg class="feed-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
 		<div id="feed_list" aria-label="Available feeds">
-			<p>MAIN FEEDS</p>
+			<p>Feeds</p>
 			<a href="/">Home</a>
+			<a href="/for-you">For You</a>
 			{% if prefs.remove_default_feeds != "on" %}
 				<a href="/r/popular">Popular</a>
 				<a href="/r/all">All</a>
 			{% endif %}
 			{% if prefs.subscriptions.len() > 0 %}
-				<p>REDDIT FEEDS</p>
+				<p>Subscriptions</p>
 				{% for sub in prefs.subscriptions %}
 					<a href="/r/{{ sub }}" {% if sub == current %}class="selected"{% endif %}>{{ sub }}</a>
 				{% endfor %}
@@ -289,6 +291,24 @@
 	{% if prefs.use_hls != "on" || post.media.alt_url.is_empty() %}
 	{% call render_hls_notification(format!("{}%23{}", &self.url[1..].replace("&", "%26").replace("+", "%2B"), post.id)) %}
 	{% endif %}
+	{% else if prefs.layout != "compact" && post.post_type == "gallery" && !post.gallery.is_empty() %}
+	{% let first = post.gallery[0] %}
+	<div class="post_media_content feed-gallery" data-gallery>
+		<div class="feed-gallery-track" tabindex="0" role="group" aria-roledescription="carousel" aria-label="Gallery, {{ post.gallery.len() }} images" {% if first.width > 0 && first.height > 0 %}style="aspect-ratio: {{ first.width }} / {{ first.height }}"{% endif %}>
+			{% for image in post.gallery -%}
+			<figure class="feed-gallery-slide" role="group" aria-roledescription="slide" aria-label="{{ loop.index }} of {{ post.gallery.len() }}">
+				<a href="{{ post.permalink }}"><img {% if loop.first %}loading="eager"{% else %}loading="lazy"{% endif %} decoding="async" alt="{% if image.caption.is_empty() %}Image {{ loop.index }} of {{ post.gallery.len() }}{% else %}{{ image.caption }}{% endif %}" src="{{ image.url }}" {% if image.width > 0 && image.height > 0 %}width="{{ image.width }}" height="{{ image.height }}"{% endif %}/></a>
+				{% if !image.caption.is_empty() %}<figcaption>{{ image.caption }}</figcaption>{% endif %}
+			</figure>
+			{%- endfor %}
+		</div>
+		{% if post.gallery.len() > 1 %}
+		<span class="feed-gallery-count" aria-hidden="true">1/{{ post.gallery.len() }}</span>
+		<button type="button" class="feed-gallery-nav prev" aria-label="Previous image" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button>
+		<button type="button" class="feed-gallery-nav next" aria-label="Next image" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
+		{% if post.gallery.len() <= 10 %}<div class="feed-gallery-dots" aria-hidden="true">{% for image in post.gallery %}<span{% if loop.first %} class="active"{% endif %}></span>{% endfor %}</div>{% endif %}
+		{% endif %}
+	</div>
 	{% else if post.post_type != "self" %}
 	<a class="post_thumbnail{% if post.thumbnail.url.is_empty() %} no_thumbnail{% endif %}" href="{% if post.post_type == "link" %}{{ post.media.url }}{% else %}{{ post.permalink }}{% endif %}" rel="nofollow">
 		{% if post.thumbnail.url.is_empty() %}

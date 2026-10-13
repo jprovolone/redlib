@@ -3,9 +3,10 @@
 use std::collections::HashMap;
 
 // CRATES
+use crate::discovery::ForYouExport;
 use crate::server::ResponseExt;
 use crate::subreddit::join_until_size_limit;
-use crate::utils::{deflate_decompress, redirect, template, Preferences};
+use crate::utils::{deflate_compress, deflate_decompress, redirect, template, Preferences};
 use askama::Template;
 use cookie::Cookie;
 use futures_lite::StreamExt;
@@ -20,6 +21,36 @@ use url::form_urlencoded;
 struct SettingsTemplate {
 	prefs: Preferences,
 	url: String,
+	/// Restore-link query including For You settings.
+	restore_query: Result<String, String>,
+	/// Portable export code including For You settings.
+	export_code: Result<String, String>,
+}
+
+/// Joins two query strings, skipping empty parts.
+fn join_query(a: &str, b: &str) -> String {
+	match (a.is_empty(), b.is_empty()) {
+		(_, true) => a.to_string(),
+		(true, false) => b.to_string(),
+		(false, false) => format!("{a}&{b}"),
+	}
+}
+
+/// Export code: compressed bincode of `(Preferences, ForYouExport)`.
+/// `Preferences` bytes come first and are unchanged, so upstream Redlib (which
+/// ignores trailing bytes) can still import these codes, minus For You.
+pub fn export_code(prefs: &Preferences, for_you: &ForYouExport) -> Result<String, String> {
+	let bytes = bincode::serialize(&(prefs, for_you)).map_err(|e| e.to_string())?;
+	Ok(base2048::encode(&deflate_compress(bytes)?))
+}
+
+/// Decodes new codes, falling back to older codes that contain only `Preferences`.
+pub fn decode_export(bytes: &[u8]) -> Result<(Preferences, ForYouExport), String> {
+	bincode::deserialize::<(Preferences, ForYouExport)>(bytes).or_else(|_| {
+		bincode::deserialize::<Preferences>(bytes)
+			.map(|prefs| (prefs, ForYouExport::default()))
+			.map_err(|e| format!("Failed to deserialize bytes into Preferences struct: {e}"))
+	})
 }
 
 // CONSTANTS
@@ -51,8 +82,12 @@ const PREFS: [&str; 19] = [
 /// Retrieve cookies from request "Cookie" header
 pub async fn get(req: Request<Body>) -> Result<Response<Body>, String> {
 	let url = req.uri().to_string();
+	let prefs = Preferences::new(&req);
+	let for_you = ForYouExport::from_request(&req);
 	Ok(template(&SettingsTemplate {
-		prefs: Preferences::new(&req),
+		restore_query: prefs.to_urlencoded().map(|query| join_query(&query, &for_you.to_query())),
+		export_code: export_code(&prefs, &for_you),
+		prefs,
 		url,
 	}))
 }
@@ -146,6 +181,9 @@ fn set_cookies_method(req: Request<Body>, remove_cookies: bool) -> Response<Body
 			}
 		};
 	}
+
+	// For You settings (restore links and decoded export codes).
+	ForYouExport::from_query(&form).apply(&mut response, remove_cookies);
 
 	// Get subscriptions/filters to restore from query string
 	let subscriptions = form.get("subscriptions");
@@ -292,14 +330,13 @@ pub async fn encoded_restore(req: Request<Body>) -> Result<Response<Body>, Strin
 		.await
 		.map_err(|e| format!("Failed to decompress bytes: {e}"))??;
 
-	let mut prefs: Preferences = timeout(std::time::Duration::from_secs(1), async { bincode::deserialize(&out) })
+	let (mut prefs, for_you) = timeout(std::time::Duration::from_secs(1), async { decode_export(&out) })
 		.await
-		.map_err(|e| format!("Failed to deserialize preferences: {e}"))?
-		.map_err(|e| format!("Failed to deserialize bytes into Preferences struct: {e}"))?;
+		.map_err(|e| format!("Failed to deserialize preferences: {e}"))??;
 
 	prefs.available_themes = vec![];
 
-	let url = format!("/settings/restore/?{}", prefs.to_urlencoded()?);
+	let url = format!("/settings/restore/?{}", join_query(&prefs.to_urlencoded()?, &for_you.to_query()));
 
 	Ok(redirect(&url))
 }
@@ -307,6 +344,68 @@ pub async fn encoded_restore(req: Request<Body>) -> Result<Response<Body>, Strin
 #[cfg(test)]
 mod tests {
 	use super::*;
+
+	fn sample_for_you() -> ForYouExport {
+		ForYouExport {
+			favorites: Some("linux+space".into()),
+			excluded: "books".into(),
+			level: "high".into(),
+		}
+	}
+
+	#[test]
+	fn export_codes_include_for_you_and_stay_compatible() {
+		let prefs = Preferences {
+			theme: "dark".into(),
+			front_page: "for_you".into(),
+			..Preferences::default()
+		};
+		let code = export_code(&prefs, &sample_for_you()).unwrap();
+		let bytes = deflate_decompress(base2048::decode(&code).unwrap()).unwrap();
+
+		// This fork restores both parts.
+		let (decoded, for_you) = decode_export(&bytes).unwrap();
+		assert_eq!(decoded.theme, "dark");
+		assert_eq!(decoded.front_page, "for_you");
+		assert_eq!(for_you, sample_for_you());
+
+		// Upstream Redlib decodes only `Preferences` and ignores the trailing For You bytes.
+		let upstream: Preferences = bincode::deserialize(&bytes).unwrap();
+		assert_eq!(upstream.theme, "dark");
+
+		// Older codes (Preferences only) still import, with For You left at defaults.
+		let legacy = bincode::serialize(&prefs).unwrap();
+		let (decoded, for_you) = decode_export(&legacy).unwrap();
+		assert_eq!(decoded.theme, "dark");
+		assert_eq!(for_you, ForYouExport::default());
+	}
+
+	#[test]
+	fn restore_links_carry_validated_for_you_settings() {
+		let query = sample_for_you().to_query();
+		assert_eq!(query, "fy_favorites=linux%2Bspace&fy_excluded=books&fy_level=high");
+		let req = Request::builder().uri(format!("/settings/restore/?theme=dark&{query}")).body(Body::empty()).unwrap();
+		let response = set_cookies_method(req, true);
+		let cookies: Vec<_> = response.headers().get_all("set-cookie").iter().map(|h| h.to_str().unwrap().to_string()).collect();
+		for expected in ["theme=dark;", "fy_favorites=linux+space;", "fy_excluded=books;", "fy_level=high;"] {
+			assert!(cookies.iter().any(|c| c.starts_with(expected)), "missing {expected} in {cookies:?}");
+		}
+
+		// Untrusted values are normalized: bad names dropped, unknown levels ignored.
+		let req = Request::builder()
+			.uri("/settings/restore/?fy_favorites=Linux%2Bbad%2Fpath&fy_level=extreme")
+			.body(Body::empty())
+			.unwrap();
+		let response = set_cookies_method(req, true);
+		let cookies: Vec<_> = response.headers().get_all("set-cookie").iter().map(|h| h.to_str().unwrap().to_string()).collect();
+		assert!(cookies.iter().any(|c| c.starts_with("fy_favorites=linux;")));
+		assert!(!cookies.iter().any(|c| c.starts_with("fy_level=extreme")));
+
+		// Partial updates (e.g. /settings/update) never touch For You.
+		let req = Request::builder().uri("/settings/update/?use_hls=on").body(Body::empty()).unwrap();
+		let response = set_cookies_method(req, false);
+		assert!(!response.headers().get_all("set-cookie").iter().any(|h| h.to_str().unwrap().starts_with("fy_")));
+	}
 
 	#[tokio::test]
 	async fn saving_preferences_confirms_and_sets_cookies() {
