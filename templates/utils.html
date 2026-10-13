@@ -1,3 +1,15 @@
+{% macro icon(name) -%}
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+	{% if name == "home" %}<path d="m3 10 9-7 9 7v10H15v-7H9v7H3z"/>
+	{% else if name == "popular" %}<path d="m3 17 6-6 4 4 8-10M15 5h6v6"/>
+	{% else if name == "search" %}<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>
+	{% else if name == "settings" %}<path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/>
+	{% else if name == "comments" %}<path d="M4 4h16v12H10l-6 4z"/>
+	{% else if name == "open" %}<path d="M14 3h7v7m0-7L10 14M10 3H3v18h18v-7"/>
+	{% endif %}
+</svg>
+{%- endmacro %}
+
 {% macro options(current, values, default) -%}
 	{% for value in values %}
 		<option value="{{ value }}" {% if current == value.to_string() || (current == "" && value.to_string() == default.to_string()) %}selected{% endif %}>
@@ -16,19 +28,15 @@
 
 {% macro search(root, search) -%}
 <form action="{% if root != "/r/" && !root.is_empty() %}{{ root }}{% endif %}/search" id="searchbox">
-	<input id="search" type="text" name="q" placeholder="Search" title="Search redlib" value="{{ search }}">
+	<input id="search" type="search" name="q" placeholder="Search Reddit" aria-label="Search Reddit through Redlib" value="{{ search }}">
 	{% if root != "/r/" && !root.is_empty() %}
 	<div id="inside">
 		<input type="checkbox" name="restrict_sr" id="restrict_sr" checked>
 		<label for="restrict_sr" class="search_label" title="Restrict search to this subreddit">in {{ root }}</label>
 	</div>
 	{% endif %}
-	<button class="submit">
-		<svg width="15" viewBox="0 0 110 100" fill="none" stroke-width="10" stroke-linecap="round">
-			<path d="M20 50 H100" />
-			<path d="M75 15 L100 50 L75 85" />
-			&rarr;
-		</svg>
+	<button class="submit" aria-label="Search">
+		{% call icon("search") %}
 	</button>
 </form>
 {%- endmacro %}
@@ -38,9 +46,9 @@
 {%- endmacro %}
 
 {% macro sub_list(current) -%}
-	<details id="feeds">
-		<summary>Feeds</summary>
-		<div id="feed_list">
+	<details id="feeds" class="feed-menu">
+		<summary aria-label="Choose a feed"><span>Feeds</span><svg class="feed-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+		<div id="feed_list" aria-label="Available feeds">
 			<p>MAIN FEEDS</p>
 			<a href="/">Home</a>
 			{% if prefs.remove_default_feeds != "on" %}
@@ -68,7 +76,7 @@
 <!-- POST CONTENT -->
 <div class="post highlighted{% if post_should_be_blurred %} post_blurred{% endif %}">
 	<p class="post_header">
-		<a class="post_subreddit" href="/r/{{ post.community }}">r/{{ post.community }}</a>
+		<a class="post_subreddit" href="/r/{{ post.community }}"><span class="community-avatar" aria-hidden="true">r/</span>r/{{ post.community }}</a>
 		<span class="dot">&bull;</span>
 		<a class="post_author {{ post.author.distinguished }}" href="/user/{{ post.author.name }}">u/{{ post.author.name }}</a>
 		{% if post.author.flair.flair_parts.len() > 0 %}
@@ -159,13 +167,11 @@
 		{{ post.body|safe }}
 		{% call poll(post) %}
 	</div>
-	<div class="post_score" title="{{ post.score.1 }}">
-    {% if prefs.hide_score != "on" %}
-    {{ post.score.0 }}
-    {% else %}
-    &#x2022;
-    {% endif %}
-    <span class="label"> Upvotes</span></div>
+	<div class="post_score" title="{{ post.score.1 }} upvotes">
+		<svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4 7 7h-4v9H9v-9H5z"/></svg>
+		{% if prefs.hide_score != "on" %}{{ post.score.0 }}{% else %}&#x2022;{% endif %}
+		<span class="label"> Upvotes</span>
+	</div>
 	<div class="post_footer">
 		<ul id="post_links">
 			<li>
@@ -227,7 +233,7 @@
 		{% else -%}
 			{% let community = format!("r/{}", post.community) -%}
 		{% endif -%}
-		<a class="post_subreddit" href="/{{ community }}">{{ community }}</a>
+		<a class="post_subreddit" href="/{{ community }}"><span class="community-avatar" aria-hidden="true">{% if post.community.starts_with("u_") %}u/{% else %}r/{% endif %}</span>{{ community }}</a>
 		<span class="dot">&bull;</span>
 		<a class="post_author {{ post.author.distinguished }}" href="/u/{{ post.author.name }}">u/{{ post.author.name }}</a>
 		<span class="dot">&bull;</span>
@@ -269,18 +275,18 @@
 			{% endif %}
 		</a>
 	</div>
-	{% else if (prefs.layout.is_empty() || prefs.layout == "card") && (post.post_type == "gif" || post.post_type == "video") %}
-	{% if prefs.use_hls == "on" && !post.media.alt_url.is_empty() %}
-	<div class="post_media_content">
-        <video class="post_media_video short{% if prefs.autoplay_videos == "on" %} hls_autoplay{% endif %}" {% if post.media.width > 0 && post.media.height > 0 %}width="{{ post.media.width }}" height="{{ post.media.height }}"{% endif %} poster="{{ post.media.poster }}" controls preload="none">
-			<source src="{{ post.media.alt_url }}" type="application/vnd.apple.mpegurl" />
+	{% else if prefs.layout != "compact" && (post.post_type == "gif" || post.post_type == "video") %}
+	<div class="post_media_content feed-video">
+		<video class="post_media_video short" data-feed-video data-autoplay="{% if prefs.autoplay_videos == "off" %}off{% else %}on{% endif %}" {% if post.media.width > 0 && post.media.height > 0 %}width="{{ post.media.width }}" height="{{ post.media.height }}"{% endif %} poster="{{ post.media.poster }}" muted playsinline loop controls preload="none">
+			{% if prefs.use_hls == "on" && !post.media.alt_url.is_empty() %}<source src="{{ post.media.alt_url }}" type="application/vnd.apple.mpegurl" />{% endif %}
 			<source src="{{ post.media.url }}" type="video/mp4" />
+			<a href="{{ post.media.url }}">Watch video</a>
 		</video>
+		<button type="button" class="video-sound-toggle" hidden aria-label="Unmute video" aria-pressed="false">
+			<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 9h4l5-4v14l-5-4H3z"/><path class="sound-off" d="m16 9 5 6m0-6-5 6"/><path class="sound-on" d="M16 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></svg>
+		</button>
 	</div>
-	{% else %}
-	<div class="post_media_content">
-		<video class="post_media_video short" src="{{ post.media.url }}" {% if post.media.width > 0 && post.media.height > 0 %}width="{{ post.media.width }}" height="{{ post.media.height }}"{% endif %} poster="{{ post.media.poster }}" preload="none" controls {% if prefs.autoplay_videos == "on" %}autoplay{% endif %}><a href={{ post.media.url }}>Video</a></video>
-	</div>
+	{% if prefs.use_hls != "on" || post.media.alt_url.is_empty() %}
 	{% call render_hls_notification(format!("{}%23{}", &self.url[1..].replace("&", "%26").replace("+", "%2B"), post.id)) %}
 	{% endif %}
 	{% else if post.post_type != "self" %}
@@ -303,13 +309,11 @@
 		<span>{% if post.post_type == "link" %}{{ post.domain }}{% else %}{{ post.post_type }}{% endif %}</span>
 	</a>
 	{% endif %}
-	<div class="post_score" title="{{ post.score.1 }}">
-    {% if prefs.hide_score != "on" %}
-    {{ post.score.0 }}
-    {% else %}
-    &#x2022;
-    {% endif %}
-    <span class="label"> Upvotes</span></div>
+	<div class="post_score" title="{{ post.score.1 }} upvotes">
+		<svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4 7 7h-4v9H9v-9H5z"/></svg>
+		{% if prefs.hide_score != "on" %}{{ post.score.0 }}{% else %}&#x2022;{% endif %}
+		<span class="label"> Upvotes</span>
+	</div>
 	<div class="post_body post_preview">
 		{{ post.body|safe }}
 	</div>
@@ -317,7 +321,10 @@
 	{% call poll(post) %}
 
 	<div class="post_footer">
-		<a href="{{ post.permalink }}" class="post_comments" title="{{ post.comments.1 }} {% if post.comments.1 == "1" %}comment{% else %}comments{% endif %}">{{ post.comments.0 }} {% if post.comments.1 == "1" %}comment{% else %}comments{% endif %}</a>
+		<div class="post_actions">
+			<a href="{{ post.permalink }}" class="post_comments" aria-label="{{ post.comments.1 }} comments">{% call icon("comments") %}<span>{{ post.comments.0 }}</span></a>
+			<a href="{{ post.permalink }}" class="post-open">{% call icon("open") %}<span>Open post</span></a>
+		</div>
 	</div>
 </div>
 {%- endmacro %}

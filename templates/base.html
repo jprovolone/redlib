@@ -7,12 +7,13 @@
 		<title>{% block title %}Redlib{% endblock %}</title>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 		<meta name="description" content="View on Redlib, an alternative private front-end to Reddit.">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 		{% if crate::utils::disable_indexing() %}
 		<meta name="robots" content="noindex, nofollow">
 		{% endif %}
 		<!-- General PWA -->
-		<meta name="theme-color" content="#1F1F1F">
+		<meta name="theme-color" content="#1a1a1b" media="(prefers-color-scheme: dark)">
+		<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 		<!-- iOS Application -->
 		<meta name="apple-mobile-web-app-title" content="Redlib">
 		<meta name="apple-mobile-web-app-capable" content="yes">
@@ -27,25 +28,29 @@
 		<link rel="manifest" type="application/json" href="/manifest.json">
 		<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"> 
 		<link rel="stylesheet" type="text/css" href="/style.css?v={{ env!("CARGO_PKG_VERSION") }}">
-		<!-- Video quality -->
-		<div id="video_quality" data-value="{{ prefs.video_quality }}"></div>
+		<link rel="stylesheet" type="text/css" href="/ios.css?v=2">
+		<script src="/feed-video.js?v=1" defer></script>
 		{% endblock %}
 		</head>
-	<body class="
+	<body class="ios-ui
 		{% if prefs.layout != "" %}{{ prefs.layout }}{% endif %}
 		{% if prefs.wide == "on" %} wide{% endif %}
 		{% if prefs.theme != "system" %} {{ prefs.theme }}{% endif %}
 		{% if prefs.fixed_navbar == "on" %} fixed_navbar{% endif %}">
+		<div id="video_quality" data-value="{{ prefs.video_quality }}" hidden></div>
 		<!-- NAVIGATION BAR -->
-		<nav class="
+		<nav aria-label="Main navigation" class="app-header
 			{% if prefs.fixed_navbar == "on" %} fixed_navbar{% endif %}">
 			<div id="logo">
-				<a id="redlib" href="/"><span id="red">red</span><span id="lib">lib.</span></a>
+				<a id="redlib" class="app-brand" href="/" aria-label="Redlib home">
+					<svg class="app-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="16"/><path d="M8 11h16v10H15l-5 4v-4H8z" fill="none" stroke="white" stroke-width="2" stroke-linejoin="round"/><circle cx="13" cy="16" r="1" fill="white"/><circle cx="19" cy="16" r="1" fill="white"/></svg>
+					<span class="app-wordmark">redlib</span>
+				</a>
 				{% block subscriptions %}{% endblock %}
 			</div>
 			{% block search %}{% endblock %}
 			<div id="links">
-				<a id="reddit_link" {% if prefs.disable_visit_reddit_confirmation != "on" %}href="#popup"{% else %}href="https://www.reddit.com{{ url }}" rel="nofollow"{% endif %}>
+				<a id="reddit_link" aria-label="Open on Reddit" {% if prefs.disable_visit_reddit_confirmation != "on" %}href="#popup"{% else %}href="https://www.reddit.com{{ url }}" rel="nofollow"{% endif %}>
 					<span>reddit</span>
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 						<path d="M22 2L12 22"/>
@@ -55,7 +60,7 @@
 				{% if prefs.disable_visit_reddit_confirmation != "on" %}
 					{% call utils::visit_reddit_confirmation(url) %}
 				{% endif %}
-				<a id="settings_link" href="/settings">
+				<a id="settings_link" href="/settings" aria-label="Settings">
 					<span>settings</span>
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 						<title>settings</title>
@@ -72,6 +77,23 @@
 			{% endblock %}
 		</main>
 		{% endblock %}
+
+		<nav class="app-tabs" aria-label="Mobile navigation">
+			<a class="app-tab" href="/" {% if url == "/" || url.starts_with("/?") %}aria-current="page"{% endif %}>
+				{% call utils::icon("home") %}<span>Home</span>
+			</a>
+			{% if prefs.remove_default_feeds != "on" %}
+			<a class="app-tab" href="/r/popular" {% if url.starts_with("/r/popular") %}aria-current="page"{% endif %}>
+				{% call utils::icon("popular") %}<span>Popular</span>
+			</a>
+			{% endif %}
+			<a class="app-tab" href="/search" {% if url.starts_with("/search") || url.contains("/search?") %}aria-current="page"{% endif %}>
+				{% call utils::icon("search") %}<span>Search</span>
+			</a>
+			<a class="app-tab" href="/settings" {% if url.starts_with("/settings") %}aria-current="page"{% endif %}>
+				{% call utils::icon("settings") %}<span>Settings</span>
+			</a>
+		</nav>
 
 		<!-- FOOTER -->
 		{% block footer %}

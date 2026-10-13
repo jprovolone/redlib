@@ -1,0 +1,26 @@
+# Builds the local checkout (not an upstream release). linux/amd64.
+FROM rust:1-bookworm AS builder
+RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends cmake clang libclang-dev pkg-config build-essential perl \
+    && apt-get clean
+WORKDIR /redlib
+COPY . .
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/redlib/target \
+    cargo build --locked --release --bin redlib \
+    && cp target/release/redlib /usr/local/bin/redlib
+
+FROM debian:bookworm-slim
+# Bootstrap HTTPS downloads using the builder's trusted certificates.
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates wget \
+    && apt-get clean \
+    && useradd --system --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin redlib
+COPY --from=builder /usr/local/bin/redlib /usr/local/bin/redlib
+USER redlib
+EXPOSE 8080
+HEALTHCHECK --interval=1m --timeout=3s CMD wget --spider -q http://localhost:8080/settings || exit 1
+CMD ["redlib"]

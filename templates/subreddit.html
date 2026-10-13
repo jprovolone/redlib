@@ -19,7 +19,11 @@
 	<main>
 		{% if !is_filtered %}
 		<div id="column_one">
-			<form id="sort">
+			<header class="feed-heading">
+				<span class="feed-eyebrow">Your daily scroll</span>
+				<h1>{% if sub.name.is_empty() %}Home{% else if sub.name == "popular" %}Popular{% else if sub.name == "all" %}All{% else %}r/{{ sub.name }}{% endif %}</h1>
+			</header>
+			<form id="sort" aria-label="Sort posts">
 				<div id="sort_options">
 					{% if sub.name.is_empty() %}
 						{% call utils::sort("", ["hot", "new", "top", "rising", "controversial"], sort.0) %}
@@ -89,7 +93,7 @@
 			{% endif %}
 			{% if !sub.name.is_empty() && sub.name != "all" && sub.name != "popular" && !sub.name.contains("+") %}
 			<details class="panel" id="subreddit" open>
-				<summary id="subreddit_label">Subreddit</summary>
+				<summary id="subreddit_label">About this community</summary>
 				{% if sub.wiki %}
 				<div id="top">
 					<div>Posts</div>
@@ -137,6 +141,7 @@
                             </a>
 						</div>
 						{% endif %}
+				</div>
 				</div>
 			</details>
 			<details class="panel" id="sidebar">

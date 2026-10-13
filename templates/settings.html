@@ -13,6 +13,9 @@
 
 {% block content %}
 <div id="settings">
+	{% if url == "/settings?saved=1" %}
+	<p class="settings-saved" role="status">✓ Settings saved</p>
+	{% endif %}
 	<form action="/settings" method="POST">
 		<div class="prefs">
 			<fieldset>
@@ -146,7 +149,7 @@
 						prefs.disable_visit_reddit_confirmation=="on" %}checked{% endif %}>
 				</div>
 			</fieldset>
-			<input id="save" type="submit" value="Save">
+			<button id="save" type="submit">Save settings</button>
 		</div>
 	</form>
 	{% if prefs.subscriptions.len() > 0 %}

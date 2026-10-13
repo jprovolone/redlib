@@ -220,6 +220,10 @@ async fn main() {
 
 	// Read static files
 	app.at("/style.css").get(|_| style().boxed());
+	app.at("/ios.css").get(|_| resource(include_str!("../static/ios.css"), "text/css", false).boxed());
+	app
+		.at("/feed-video.js")
+		.get(|_| resource(include_str!("../static/feed-video.js"), "text/javascript", false).boxed());
 	app
 		.at("/manifest.json")
 		.get(|_| resource(include_str!("../static/manifest.json"), "application/json", false).boxed());

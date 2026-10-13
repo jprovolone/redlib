@@ -1,0 +1,534 @@
+/* Redlib iOS-style UI. Loaded after /style.css; everything is scoped to body.ios-ui. */
+
+/* ---- Tokens: map to theme vars; Reddit palette only for system/light/dark/black ---- */
+.ios-ui {
+    --ios-orange: #ff4500;
+    --ios-accent: var(--accent);
+    --ios-bg: var(--background);
+    --ios-card: var(--post);
+    --ios-bar: var(--outside);
+    --ios-text: var(--text);
+    --ios-muted: color-mix(in srgb, var(--text) 60%, transparent);
+    --ios-line: var(--highlighted);
+    --ios-tab-h: 56px;
+    --ios-safe-b: env(safe-area-inset-bottom, 0px);
+    --ios-safe-t: env(safe-area-inset-top, 0px);
+    --ios-safe-l: env(safe-area-inset-left, 0px);
+    --ios-safe-r: env(safe-area-inset-right, 0px);
+    --ios-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* System (no named theme class) follows the OS; list names every other bundled theme */
+.ios-ui:not(:is(.light, .dark, .black, .doomone, .dracula, .gold, .gruvboxdark, .gruvboxlight, .icebergDark, .laserwave, .libredditBlack, .libredditDark, .libredditLight, .midnightPurple, .nord, .rosebox, .tokyoNight, .violet)),
+.ios-ui.dark {
+    --ios-accent: var(--ios-orange);
+    --ios-bg: #030303;
+    --ios-card: #1a1a1b;
+    --ios-bar: #1a1a1b;
+    --ios-text: #d7dadc;
+    --ios-muted: #818384;
+    --ios-line: #343536;
+}
+.ios-ui.black {
+    --ios-accent: var(--ios-orange);
+    --ios-bg: #000;
+    --ios-card: #000;
+    --ios-bar: #000;
+    --ios-text: #d7dadc;
+    --ios-muted: #818384;
+    --ios-line: #222;
+}
+.ios-ui.light {
+    --ios-accent: var(--ios-orange);
+    --ios-bg: #dae0e6;
+    --ios-card: #fff;
+    --ios-bar: #fff;
+    --ios-text: #1c1c1c;
+    --ios-muted: #7c7c7c;
+    --ios-line: #edeff1;
+}
+@media (prefers-color-scheme: light) {
+    .ios-ui:not(:is(.light, .dark, .black, .doomone, .dracula, .gold, .gruvboxdark, .gruvboxlight, .icebergDark, .laserwave, .libredditBlack, .libredditDark, .libredditLight, .midnightPurple, .nord, .rosebox, .tokyoNight, .violet)) {
+        --ios-bg: #dae0e6;
+        --ios-card: #fff;
+        --ios-bar: #fff;
+        --ios-text: #1c1c1c;
+        --ios-muted: #7c7c7c;
+        --ios-line: #edeff1;
+    }
+}
+
+/* ---- Base ---- */
+html.fixed_navbar:has(body.ios-ui) { scroll-padding-top: calc(110px + env(safe-area-inset-top, 0px)); }
+.ios-ui,
+.ios-ui :is(div, p, h1, h2, h3, ul, li, select, input, button, summary, label, form, pre, table, td, th) {
+    font-family: var(--ios-font);
+}
+.ios-ui {
+    background: var(--ios-bg);
+    color: var(--ios-text);
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    padding-top: 0;
+    min-height: 100vh;
+    padding-bottom: 30px;
+}
+.ios-ui.fixed_navbar { padding-top: 0; min-height: 100vh; }
+.ios-ui :is(div, p, h1, h2, h3, ul, li, summary, label, pre) { color: inherit; }
+.ios-ui a { color: inherit; }
+.ios-ui :is(a, button, summary, select, input[type="submit"], .app-tab):focus-visible {
+    outline: 2px solid var(--ios-accent);
+    outline-offset: 2px;
+}
+.ios-ui :is(select, input[type="text"], input[type="search"], input[type="submit"], button) {
+    min-height: 44px;
+    font-size: 16px; /* prevents iOS focus zoom */
+}
+
+/* ---- Header (sticky, never fixed) ---- */
+.ios-ui :is(.app-header, .app-header.fixed_navbar) {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 56px;
+    margin: 0 0 12px;
+    padding: calc(6px + var(--ios-safe-t)) calc(12px + var(--ios-safe-r)) 6px calc(12px + var(--ios-safe-l));
+    background: var(--ios-bar);
+    border-bottom: 1px solid var(--ios-line);
+    box-shadow: none;
+    font-size: 16px;
+}
+.ios-ui .app-header * { color: var(--ios-text); }
+.ios-ui #logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 auto;
+    margin: 0;
+    min-width: 0;
+}
+.ios-ui .app-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    text-decoration: none;
+}
+.ios-ui .app-mark { width: 32px; height: 32px; flex: none; border-radius: 50%; color: #fff; fill: currentColor; }
+.ios-ui .app-mark circle:first-child { fill: var(--ios-orange); }
+.ios-ui .app-wordmark { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+.ios-ui #links { display: flex; flex: 0 0 auto; margin: 0; align-items: center; gap: 4px; }
+.ios-ui #links a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    margin: 0;
+    opacity: 1;
+}
+.ios-ui #feeds {
+    margin: 0;
+    border: 1px solid var(--ios-line);
+    border-radius: 20px;
+    background: var(--ios-bg);
+}
+.ios-ui .app-header #feeds.feed-menu {
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    flex: none;
+}
+.ios-ui #feeds > summary {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 14px;
+    box-sizing: border-box;
+}
+.ios-ui .feed-menu > summary {
+    gap: 10px;
+    padding: 0 12px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1;
+    list-style: none;
+    cursor: pointer;
+}
+.ios-ui .feed-menu > summary::-webkit-details-marker { display: none; }
+.ios-ui .feed-menu > summary::marker { content: ""; }
+.ios-ui .feed-menu .feed-chevron { flex: none; stroke: currentColor; transition: transform 150ms ease; }
+.ios-ui .feed-menu[open] > summary, .ios-ui .feed-menu > summary:hover { background: var(--ios-line); }
+.ios-ui .feed-menu[open] .feed-chevron { transform: rotate(180deg); }
+.ios-ui .feed-menu #feed_list {
+    top: calc(100% + 8px);
+    left: 0;
+    width: 260px;
+    padding: 8px;
+    box-sizing: border-box;
+    border-radius: 16px;
+}
+.ios-ui .feed-menu #feed_list > p { padding: 12px 12px 6px; margin: 0; color: var(--ios-muted); font-size: 11px; font-weight: 700; letter-spacing: .08em; opacity: 1; }
+.ios-ui .feed-menu #feed_list > a { display: flex; align-items: center; padding: 10px 12px; border-radius: 10px; font-size: 15px; }
+.ios-ui .feed-menu #feed_list > a.selected { background: var(--ios-line); color: var(--ios-text); font-weight: 700; }
+.ios-ui .feed-menu #feed_list > a:hover { background: var(--ios-line); }
+.ios-ui #searchbox {
+    flex: 1 1 100%;
+    order: 3;
+    width: 100%;
+    margin: 0;
+    box-shadow: none;
+    border-radius: 22px;
+    overflow: hidden;
+    background: var(--ios-bg);
+}
+.ios-ui #searchbox > * { background: transparent; min-height: 44px; border-radius: 0; }
+.ios-ui #searchbox #search { flex: 1; min-width: 0; padding: 0 16px; border: 0; }
+
+/* ---- Bottom tab bar (mobile only) ---- */
+.ios-ui .app-tabs { display: none; }
+@media (max-width: 800px) {
+    .ios-ui { padding-bottom: calc(var(--ios-tab-h) + var(--ios-safe-b) + 30px); }
+    .ios-ui .app-tabs {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 30;
+        display: flex;
+        justify-content: space-around;
+        box-sizing: border-box;
+        padding: 0 var(--ios-safe-r) var(--ios-safe-b) var(--ios-safe-l);
+        background: var(--ios-bar);
+        border-top: 1px solid var(--ios-line);
+    }
+    .ios-ui .app-tab {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        min-height: var(--ios-tab-h);
+        min-width: 44px;
+        font-size: 11px;
+        font-weight: 500;
+        text-decoration: none;
+        color: var(--ios-muted);
+    }
+    .ios-ui .app-tab svg { width: 24px; height: 24px; }
+    .ios-ui .app-tab[aria-current="page"] { color: var(--ios-accent); font-weight: 700; }
+    .ios-ui > footer { display: none; }
+}
+
+/* ---- Layout: all legacy fixed-navbar offsets neutralised ---- */
+body.ios-ui.fixed_navbar #subreddit,
+body.ios-ui.fixed_navbar #user,
+body.ios-ui.fixed_navbar #settings,
+body.ios-ui.fixed_navbar div.post.highlighted,
+body.ios-ui.fixed_navbar main:not(:has(div + aside)) #sort,
+body.ios-ui.fixed_navbar #column_one:has(div.post.highlighted + #commentQueryForms) #sort { margin-top: 0; }
+.ios-ui main {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 calc(8px + var(--ios-safe-r)) 24px calc(8px + var(--ios-safe-l));
+    gap: 12px;
+}
+.ios-ui aside { order: -1; }
+.ios-ui #column_one { width: 100%; max-width: 100%; border-radius: 0; }
+@media (min-width: 801px) {
+    .ios-ui main {
+        flex-direction: row;
+        justify-content: center;
+        align-items: flex-start;
+        max-width: 1120px;
+        padding: 0 20px 4em;
+        gap: 24px;
+    }
+    .ios-ui aside { order: 0; width: 300px; flex: none; position: sticky; top: 76px; }
+    .ios-ui #column_one { flex: 0 1 720px; max-width: 720px; }
+    .ios-ui.wide main { max-width: calc(100% - 40px); }
+    .ios-ui.wide #column_one { max-width: none; flex: 1; }
+    .ios-ui #sidebar, .ios-ui #subreddit { min-width: 0; width: 100%; }
+}
+
+/* ---- Feed heading ---- */
+.ios-ui .feed-heading { padding: 8px 4px; }
+.ios-ui .feed-heading h1 { margin: 0; font-size: 28px; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em; }
+.ios-ui .feed-eyebrow {
+    display: block;
+    margin-bottom: 2px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ios-accent);
+}
+
+/* ---- Sort & options ---- */
+.ios-ui #sort { box-shadow: none; background: transparent; gap: 8px; margin-bottom: 8px; }
+.ios-ui #sort_options { background: var(--ios-card); border: 1px solid var(--ios-line); border-radius: 22px; overflow: hidden; box-shadow: none; }
+.ios-ui #sort_options > a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 14px; box-sizing: border-box; }
+.ios-ui #sort_options > a.selected { background: var(--ios-accent); color: #fff; font-weight: 700; }
+.ios-ui #sort_options > a.selected,
+.ios-ui #sort_options > a.selected * { color: #fff; }
+
+/* ---- Community / user header ---- */
+.ios-ui :is(#subreddit, #user, #sidebar) {
+    background: var(--ios-card);
+    border: 1px solid var(--ios-line);
+    border-radius: 12px;
+    box-shadow: none;
+    margin: 0;
+}
+.ios-ui #sub_meta, .ios-ui #sidebar_contents { padding: 14px 16px; }
+.ios-ui #sub_icon, .ios-ui #user_icon { width: 56px; height: 56px; padding: 0; margin: 0 0 8px; border: 0; }
+.ios-ui #subreddit :is(summary, label), .ios-ui #sidebar :is(summary, label) { min-height: 44px; display: flex; align-items: center; }
+@media (max-width: 800px) {
+    .ios-ui #subreddit, .ios-ui #user { max-width: 100%; }
+    .ios-ui #sub_meta { padding: 12px 16px; }
+    .ios-ui #sub_description, .ios-ui #user_description {
+        margin: 0;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        overflow: hidden;
+        text-align: left;
+        color: var(--ios-muted);
+    }
+    .ios-ui #sub_details { display: none; }
+    .ios-ui #sidebar { margin: 0; }
+}
+
+/* ---- Posts: default / card / clean ---- */
+.ios-ui .post {
+    background: var(--ios-card);
+    border: 1px solid var(--ios-line);
+    border-radius: 12px;
+    box-shadow: none;
+    overflow: hidden;
+    grid-template:
+        "post_header       post_header       post_thumbnail" auto
+        "post_title        post_title        post_thumbnail" auto
+        "post_media        post_media        post_media" auto
+        "post_body         post_body         post_body" auto
+        "post_poll         post_poll         post_poll" auto
+        "post_notification post_notification post_notification" auto
+        "post_score        post_footer       post_footer" auto
+        / auto minmax(0, 1fr) auto;
+}
+.ios-ui .post:not(:last-child) { margin-bottom: 8px; }
+.ios-ui .post:hover { background: var(--ios-card); }
+.ios-ui .post_header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2px 6px;
+    margin: 12px 12px 4px;
+    font-size: 13px;
+    line-height: 1.3;
+    color: var(--ios-muted);
+}
+.ios-ui .post_header * { color: inherit; }
+.ios-ui .post_subreddit { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--ios-text); }
+.ios-ui .post-community-icon { width: 20px; height: 20px; flex: none; border-radius: 50%; }
+.ios-ui .post_title { margin: 0 12px 8px; font-size: 17px; font-weight: 600; line-height: 1.3; }
+.ios-ui .post_title a { color: var(--ios-text); }
+.ios-ui .post_score::before { content: none; }
+.ios-ui .post:not(.highlighted) .post_score { border-radius: 22px; }
+.ios-ui :is(.created, .post_author) { opacity: 1; }
+.ios-ui .post:not(.highlighted) .post_flair { display: inline; margin-right: 6px; padding: 2px 6px; font-size: 11px; border-radius: 4px; }
+.ios-ui .community-avatar { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--ios-line); color: var(--ios-text); font-size: 12px; font-weight: 800; }
+.ios-ui .post_media_content, .ios-ui .gallery { width: 100%; max-width: 100%; margin: 0 0 8px; background: var(--ios-bg); }
+.ios-ui .post_media_image { display: block; }
+.ios-ui .post_media_image svg { background-color: var(--ios-line); }
+.ios-ui .post_media_image :is(svg, img), .ios-ui .post_media_video { display: block; margin: auto; max-height: 640px; object-fit: contain; }
+.ios-ui .post_actions a { gap: 6px; }
+.ios-ui .post_actions svg { flex: none; }
+.ios-ui .post_actions .post_comments { background: var(--ios-line); min-height: 36px; }
+.ios-ui :is(input, select, button) { color: var(--ios-text); }
+.ios-ui :is(.subscribe, .filter, .copy, .import) { background: var(--ios-accent); color: #fff; border: 0; border-radius: 22px; }
+.ios-ui :is(.unsubscribe, .unfilter) { background: var(--ios-line); border: 0; border-radius: 22px; }
+.ios-ui #feed_list { min-width: 220px; max-width: calc(100vw - 32px); max-height: 65vh; background: var(--ios-bar); border: 1px solid var(--ios-line); border-radius: 12px; box-shadow: 0 8px 32px #0003; }
+.ios-ui #feed_list > a { min-height: 44px; box-sizing: border-box; }
+.ios-ui #commentQueryForms { gap: 12px; flex-wrap: wrap; padding: 16px 12px 8px; background: var(--ios-card); }
+.ios-ui .thread { background: var(--ios-card); }
+.ios-ui #commentQueryForms #sort { overflow: visible; flex-wrap: wrap; }
+.ios-ui #commentQueryForms :is(select, input, button) { background: var(--ios-line); border-radius: 8px; }
+.ios-ui #column_one .post.highlighted { border-radius: 12px; }
+.ios-ui #column_one .post.highlighted .post_score { border-radius: 22px; }
+.ios-ui .replies { margin: 0; padding: 0 0 0 6px; border: 0; }
+.ios-ui .replies > .comment { margin-left: 0; }
+.ios-ui .line { display: none; }
+.ios-ui .comment_score { min-width: 28px; background: transparent; padding: 8px 0; }
+.ios-ui .comment_author, .ios-ui .comment_data { margin-left: 0; }
+.ios-ui .comment_data .op { color: var(--ios-accent); }
+.ios-ui .comment_data .moderator { color: var(--green); }
+.ios-ui #sort { min-width: 0; overflow-x: auto; }
+.ios-ui #sort_options { flex-shrink: 0; }
+.ios-ui #subreddit, .ios-ui #sidebar { display: block; }
+.ios-ui #subreddit > summary, .ios-ui #sidebar > summary { display: list-item; padding-left: 24px; min-height: 44px; line-height: 44px; box-sizing: border-box; }
+@media (min-width: 801px) {
+    .ios-ui #searchbox { flex: 0 1 480px; order: 0; }
+    .ios-ui #logo { flex: 1; }
+    .ios-ui #links { order: 2; }
+}
+@media (max-width: 800px) {
+    .ios-ui main { padding-left: var(--ios-safe-l); padding-right: var(--ios-safe-r); }
+    .ios-ui .feed-heading { padding: 12px 16px; }
+    .ios-ui #column_one > #sort { padding: 0 12px; }
+    .ios-ui .post, .ios-ui #column_one .post.highlighted { border-radius: 0; border-width: 0 0 1px; }
+    .ios-ui #settings { padding: 12px; box-sizing: border-box; }
+    .ios-ui .thread { padding: 0 12px; }
+    .ios-ui #inside { max-width: 38%; padding: 0 8px; font-size: 12px; }
+    .ios-ui #restrict_sr { flex: none; }
+    .ios-ui #links span { display: none; }
+    .ios-ui #links svg { display: block; }
+    .ios-ui .app-tabs { top: auto; margin: 0; width: 100%; gap: 0; font-size: 11px; box-shadow: none; }
+}
+@media (max-width: 360px) {
+    .ios-ui .app-wordmark { display: none; }
+    .ios-ui .post-open span { display: none; }
+}
+.ios-ui .post_media { margin: 0; }
+.ios-ui .post_body { margin: 0 0 8px; padding: 4px 12px; width: auto; opacity: 1; line-height: 1.5; }
+.ios-ui .post_thumbnail { margin: 12px 12px 8px 0; width: 80px; height: 80px; border-radius: 8px; overflow: hidden; }
+.ios-ui .post_thumbnail img, .ios-ui .post_thumbnail svg { max-width: 100%; max-height: 100%; }
+.ios-ui .post_score {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 36px;
+    padding: 0 12px;
+    margin: 6px 0 6px 12px;
+    background: var(--ios-line);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ios-muted);
+    border-radius: 22px;
+    text-align: left;
+}
+.ios-ui .score-icon { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; }
+.ios-ui .post_footer { opacity: 1; margin: 0 8px 0 0; align-items: center; color: var(--ios-muted); font-size: 14px; }
+.ios-ui .post_actions { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-left: auto; }
+.ios-ui .post_actions :is(.post_comments, .post-open) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0 10px;
+    box-sizing: border-box;
+    border-radius: 22px;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--ios-muted);
+}
+.ios-ui .post_actions :is(.post_comments, .post-open):hover { background: var(--ios-line); }
+
+/* ---- Inline video controls ---- */
+.ios-ui .feed-video { position: relative; }
+.ios-ui .feed-video .post_media_video { width: 100%; max-width: 100%; height: auto; max-height: min(62svh, 580px); object-fit: contain; }
+.ios-ui .video-sound-toggle { position: absolute; right: 12px; bottom: 56px; z-index: 1; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; min-height: 44px; border: 1px solid #ffffff50; border-radius: 50%; background: #000b; color: white; cursor: pointer; box-shadow: 0 2px 8px #0005; }
+.ios-ui .video-sound-toggle svg { stroke: white; }
+.ios-ui .video-sound-toggle[hidden] { display: none; }
+.ios-ui .video-sound-toggle .sound-on { display: none; }
+.ios-ui .video-sound-toggle[aria-pressed="true"] .sound-on { display: inline; }
+.ios-ui .video-sound-toggle[aria-pressed="true"] .sound-off { display: none; }
+.ios-ui .feed-video .quality-selector { position: absolute; left: 12px; top: 12px; max-width: 150px; min-height: 32px; margin: 0; background: #000b; color: white; border: 1px solid #ffffff50; border-radius: 8px; font-size: 12px; }
+
+/* ---- Posts: compact keeps score left + usable thumbnail ---- */
+.ios-ui.compact .post {
+    border-radius: 0;
+    grid-template:
+        "post_score post_header       post_thumbnail" auto
+        "post_score post_title        post_thumbnail" 1fr
+        "post_score post_media        post_thumbnail" auto
+        "post_score post_body         post_thumbnail" auto
+        "post_score post_poll         post_thumbnail" auto
+        "post_score post_notification post_thumbnail" auto
+        "post_score post_footer       post_thumbnail" auto
+        / 44px minmax(0, 1fr) auto;
+}
+.ios-ui.compact .post:not(.highlighted) { border-width: 0 0 1px; }
+.ios-ui.compact .post:first-of-type { border-radius: 12px 12px 0 0; border-top-width: 1px; }
+.ios-ui.compact .post:last-of-type { border-radius: 0 0 12px 12px; }
+.ios-ui.compact .post_score { background: transparent; margin: 0; padding: 12px 0 0 8px; align-items: flex-start; flex-direction: column; gap: 2px; min-height: 0; }
+.ios-ui.compact .post_thumbnail { width: 72px; height: 72px; margin: 12px 12px 8px 0; }
+.ios-ui.compact .post_header { margin: 12px 12px 2px 4px; }
+.ios-ui.compact .post_title, .ios-ui.compact .post_body, .ios-ui.compact #post_url { margin: 2px 12px 6px 4px; font-size: 16px; }
+.ios-ui.compact .post_footer { margin: 0 8px 4px 0; }
+
+/* ---- Individual post ---- */
+.ios-ui .post.highlighted { border-radius: 12px; }
+.ios-ui .post.highlighted .post_title { font-size: 20px; }
+.ios-ui .post.highlighted .post_body { font-size: 16px; line-height: 1.5; }
+.ios-ui #post_links { flex-wrap: wrap; gap: 0 4px; margin: 0; }
+.ios-ui #post_links > li { margin: 0; }
+.ios-ui #post_links a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; box-sizing: border-box; }
+
+/* ---- Comments ---- */
+.ios-ui .comment { margin: 0; padding: 8px 0 0 4px; border-radius: 0; background: transparent; }
+.ios-ui .comment_left { min-width: 28px; padding: 0 4px 0 0; }
+.ios-ui .comment_right { min-width: 0; flex: 1; border-left: 2px solid var(--ios-line); padding-left: 10px; }
+.ios-ui .comment .comment { padding-left: 0; }
+.ios-ui .comment_data { display: list-item; flex-wrap: wrap; align-items: center; gap: 2px 8px; min-height: 44px; font-size: 13px; color: var(--ios-muted); cursor: pointer; }
+.ios-ui .comment_data * { color: inherit; }
+.ios-ui .comment_data .comment_author { font-weight: 700; color: var(--ios-text); }
+.ios-ui .comment_body { font-size: 16px; line-height: 1.5; margin: 0 0 8px; }
+.ios-ui .comment_body > p:not(:first-child) { margin-top: 10px; }
+.ios-ui .comment_body a { color: var(--ios-accent); }
+.ios-ui .comment_body_filtered { opacity: 0.7; }
+.ios-ui .comment_score { color: var(--ios-muted); font-size: 12px; }
+
+/* ---- Settings: grouped inset rows ---- */
+.ios-ui #settings { max-width: 100%; }
+.ios-ui .prefs { background: transparent; padding: 0; margin: 0 0 16px; }
+.ios-ui .prefs fieldset {
+    margin: 0 0 20px;
+    padding: 0;
+    background: var(--ios-card);
+    border: 1px solid var(--ios-line);
+    border-radius: 12px;
+    overflow: hidden;
+}
+.ios-ui .prefs legend {
+    float: none;
+    width: auto;
+    padding: 0 4px 6px;
+    border: 0;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ios-muted);
+}
+.ios-ui .prefs fieldset > legend { position: relative; margin-bottom: 0; }
+.ios-ui .prefs-group { height: auto; min-height: 52px; margin: 0; padding: 4px 16px; box-sizing: border-box; border-top: 1px solid var(--ios-line); }
+.ios-ui .prefs-group:first-of-type { border-top: 0; }
+.ios-ui .prefs-group label { flex: 1; }
+.ios-ui .prefs select { margin-left: 12px; max-width: 55%; border-radius: 8px; box-shadow: none; background: var(--ios-bg); }
+.ios-ui .prefs input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 44px; height: 28px; flex: none; border-radius: 16px; background: var(--ios-muted); position: relative; cursor: pointer; }
+.ios-ui .prefs input[type="checkbox"]::before { content: ""; position: absolute; width: 24px; height: 24px; top: 2px; left: 2px; border-radius: 50%; background: white; box-shadow: 0 1px 3px #0003; }
+.ios-ui .prefs input[type="checkbox"]:checked { background: #34c759; }
+.ios-ui .prefs input[type="checkbox"]:checked::before { transform: translateX(16px); }
+.ios-ui .prefs input[type="checkbox"]:focus-visible { outline: 2px solid var(--ios-accent); outline-offset: 3px; }
+.ios-ui #save { display: block; width: 100%; min-height: 48px; border: 0; border-radius: 12px; background: var(--ios-accent); color: #fff; font-weight: 700; cursor: pointer; }
+.ios-ui .settings-saved { padding: 12px 16px; margin: 0 0 16px; background: var(--ios-card); border: 1px solid #34c759; border-radius: 12px; color: var(--ios-text); font-weight: 600; }
+
+@media (prefers-reduced-motion: reduce) {
+    .ios-ui * { transition: none !important; scroll-behavior: auto !important; }
+}

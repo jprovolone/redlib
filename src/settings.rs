@@ -82,7 +82,7 @@ pub async fn set(req: Request<Body>) -> Result<Response<Body>, String> {
 
 	let form = url::form_urlencoded::parse(&body_bytes).collect::<HashMap<_, _>>();
 
-	let mut response = redirect("/settings");
+	let mut response = redirect("/settings?saved=1");
 
 	for &name in &PREFS {
 		match form.get(name) {
@@ -302,4 +302,25 @@ pub async fn encoded_restore(req: Request<Body>) -> Result<Response<Body>, Strin
 	let url = format!("/settings/restore/?{}", prefs.to_urlencoded()?);
 
 	Ok(redirect(&url))
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[tokio::test]
+	async fn saving_preferences_confirms_and_sets_cookies() {
+		let request = Request::builder()
+			.method("POST")
+			.uri("/settings")
+			.body(Body::from("theme=dark&autoplay_videos=off&use_hls=on"))
+			.unwrap();
+		let response = set(request).await.unwrap();
+		assert!(response.status().is_redirection());
+		assert_eq!(response.headers().get("location").unwrap(), "/settings?saved=1");
+		let cookies: Vec<_> = response.headers().get_all("set-cookie").iter().map(|cookie| cookie.to_str().unwrap()).collect();
+		for expected in ["theme=dark;", "autoplay_videos=off;", "use_hls=on;"] {
+			assert!(cookies.iter().any(|cookie| cookie.starts_with(expected)), "Missing cookie: {expected}");
+		}
+	}
 }
