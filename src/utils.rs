@@ -667,6 +667,17 @@ pub struct Preferences {
 	pub hide_score: String,
 	#[revision(start = 1)]
 	pub remove_default_feeds: String,
+	/// Transient per-post rating state (For You cookies), never exported here:
+	/// ratings travel separately so `Preferences` bytes stay unchanged.
+	#[revision(start = 1)]
+	#[serde(skip_serializing, skip_deserializing)]
+	pub post_interested: Vec<String>,
+	#[revision(start = 1)]
+	#[serde(skip_serializing, skip_deserializing)]
+	pub post_less_interested: Vec<String>,
+	#[revision(start = 1)]
+	#[serde(skip_serializing, skip_deserializing)]
+	pub post_excluded: Vec<String>,
 }
 
 fn serialize_vec_with_plus<S>(vec: &[String], serializer: S) -> Result<S::Ok, S::Error>
@@ -702,6 +713,7 @@ impl Preferences {
 			let chunks: Vec<&str> = file.as_ref().split(".css").collect();
 			themes.push(chunks[0].to_owned());
 		}
+		let (post_interested, post_less_interested, post_excluded) = crate::discovery::rating_lists(req);
 		Self {
 			available_themes: themes,
 			theme: setting(req, "theme"),
@@ -725,6 +737,26 @@ impl Preferences {
 			hide_awards: setting(req, "hide_awards"),
 			hide_score: setting(req, "hide_score"),
 			remove_default_feeds: setting(req, "remove_default_feeds"),
+			post_interested,
+			post_less_interested,
+			post_excluded,
+		}
+	}
+
+	/// Saved rating for a community: "interested", "less", "exclude" or "".
+	/// Exclusion wins over less, which wins over interested.
+	pub fn post_rating(&self, community: &str) -> &'static str {
+		let name = community.to_ascii_lowercase();
+		if name.starts_with("u_") {
+			""
+		} else if self.post_excluded.contains(&name) {
+			"exclude"
+		} else if self.post_less_interested.contains(&name) {
+			"less"
+		} else if self.post_interested.contains(&name) {
+			"interested"
+		} else {
+			""
 		}
 	}
 
@@ -1519,6 +1551,35 @@ mod tests {
 		assert_eq!(format_url("spoiler"), "");
 	}
 	#[test]
+	fn transient_rating_fields_do_not_change_export_bytes() {
+		let plain = Preferences {
+			theme: "dark".into(),
+			..Preferences::default()
+		};
+		let rated = Preferences {
+			theme: "dark".into(),
+			post_interested: vec!["linux".into()],
+			post_less_interested: vec!["space".into()],
+			post_excluded: vec!["books".into()],
+			..Preferences::default()
+		};
+		assert_eq!(plain.to_bincode().unwrap(), rated.to_bincode().unwrap());
+		assert_eq!(plain.to_urlencoded().unwrap(), rated.to_urlencoded().unwrap());
+		assert_eq!(rated.post_rating("Linux"), "interested");
+		assert_eq!(rated.post_rating("SPACE"), "less");
+		assert_eq!(rated.post_rating("books"), "exclude");
+		assert_eq!(rated.post_rating("cooking"), "");
+		let conflicted = Preferences {
+			post_interested: vec!["linux".into()],
+			post_less_interested: vec!["linux".into()],
+			post_excluded: vec!["linux".into()],
+			..Preferences::default()
+		};
+		assert_eq!(conflicted.post_rating("linux"), "exclude");
+		assert_eq!(conflicted.post_rating("u_linux"), "");
+	}
+
+	#[test]
 	fn serialize_prefs() {
 		let prefs = Preferences {
 			available_themes: vec![],
@@ -1543,6 +1604,7 @@ mod tests {
 			hide_awards: "off".to_owned(),
 			hide_score: "off".to_owned(),
 			remove_default_feeds: "off".to_owned(),
+			..Preferences::default()
 		};
 		let urlencoded = serde_urlencoded::to_string(prefs).expect("Failed to serialize Prefs");
 

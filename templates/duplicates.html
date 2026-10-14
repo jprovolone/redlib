@@ -53,7 +53,7 @@
                 {# TODO: utils::post should be reworked to permit a truncated display of a post as below #}
                 {% if !(post.flags.nsfw) || prefs.show_nsfw == "on" %}
                 <div class="post {% if post.flags.stickied %}stickied{% endif %}" id="{{ post.id }}">
-                        <p class="post_header">
+                        <div class="post_header">
                             {% let community -%}
                             {% if post.community.starts_with("u_") -%}
                                 {% let community = format!("u/{}", &post.community[2..]) -%}
@@ -72,7 +72,8 @@
                                 </span>
                                 {% endfor %}
                             {% endif %}
-                        </p>
+                            {% call utils::rate_menu(post) %}
+                        </div>
                         <h2 class="post_title">
                             {% if post.flair.flair_parts.len() > 0 %}
                                 <a href="/r/{{ post.community }}/search?q=flair_name%3A%22{{ post.flair.text }}%22&restrict_sr=on"

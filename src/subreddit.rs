@@ -35,6 +35,9 @@ struct SubredditTemplate {
 	/// Whether all posts were hidden because they are NSFW (and user has disabled show NSFW)
 	all_posts_hidden_nsfw: bool,
 	no_posts: bool,
+	/// Next-page cursors for the rising/new sources woven into hot feeds
+	/// (leading `&`), or empty when the feed isn't blended.
+	fresh_query: String,
 }
 
 #[derive(Template)]
@@ -171,10 +174,43 @@ pub async fn community(req: Request<Body>) -> Result<Response<Body>, String> {
 			all_posts_filtered: false,
 			all_posts_hidden_nsfw: false,
 			no_posts: false,
+			fresh_query: String::new(),
 		}))
 	} else {
-		match Post::fetch(&path, quarantined).await {
-			Ok((mut posts, after)) => {
+		// Hot feeds also weave in rising and new posts so each refresh brings
+		// something new, like the Reddit app. Paging backwards stays plain hot.
+		let blend = sort == "hot" && param(&path, "before").unwrap_or_default().is_empty();
+		let cursors = crate::fresh::Cursors::from_query(&query, "r_after", "n_after");
+		let feed = sub_name.replace('+', "%2B");
+		// `after=end` means hot ran out while rising/new still had posts.
+		let hot_done = param(&path, "after").is_some_and(|a| a == crate::fresh::END);
+		let (listing, (rising, new, next_cursors)) = tokio::join!(
+			async {
+				if hot_done {
+					Ok((Vec::new(), String::new()))
+				} else {
+					Post::fetch(&path, quarantined).await
+				}
+			},
+			async {
+				if blend && !cursors.exhausted() {
+					crate::fresh::extras(&feed, &cursors, quarantined, &params).await
+				} else {
+					let done = crate::fresh::Cursors {
+						rising: crate::fresh::END.into(),
+						new: crate::fresh::END.into(),
+					};
+					(Vec::new(), Vec::new(), done)
+				}
+			}
+		);
+		match listing {
+			Ok((posts, after)) => {
+				let mut posts = if blend {
+					crate::fresh::weave(posts, rising, new, |p| &p.id, |p| p.flags.stickied, &mut fastrand::Rng::new())
+				} else {
+					posts
+				};
 				let (_, all_posts_filtered) = filter_posts(&mut posts, &filters);
 				let no_posts = posts.is_empty();
 				let all_posts_hidden_nsfw = !no_posts && (posts.iter().all(|p| p.flags.nsfw) && setting(&req, "show_nsfw") != "on");
@@ -186,7 +222,7 @@ pub async fn community(req: Request<Body>) -> Result<Response<Body>, String> {
 					sub,
 					posts,
 					sort: (sort, param(&path, "t").unwrap_or_default()),
-					ends: (param(&path, "after").unwrap_or_default(), after),
+					ends: (param(&path, "after").filter(|a| a != crate::fresh::END).unwrap_or_default(), after),
 					prefs: Preferences::new(&req),
 					url,
 					redirect_url,
@@ -194,6 +230,11 @@ pub async fn community(req: Request<Body>) -> Result<Response<Body>, String> {
 					all_posts_filtered,
 					all_posts_hidden_nsfw,
 					no_posts,
+					fresh_query: if blend && !next_cursors.exhausted() {
+						next_cursors.to_query("r_after", "n_after")
+					} else {
+						String::new()
+					},
 				}))
 			}
 			Err(msg) => match msg.as_str() {

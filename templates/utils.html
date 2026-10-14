@@ -7,6 +7,10 @@
 	{% else if name == "settings" %}<path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/>
 	{% else if name == "comments" %}<path d="M4 4h16v12H10l-6 4z"/>
 	{% else if name == "open" %}<path d="M14 3h7v7m0-7L10 14M10 3H3v18h18v-7"/>
+	{% else if name == "more" %}<circle cx="5" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="19" cy="12" r="1.4" fill="currentColor"/>
+	{% else if name == "interested" %}<path d="M7 10v11M15 5.9 14 10h5.8a2 2 0 0 1 2 2.4l-1.4 7a2 2 0 0 1-2 1.6H7V10l4.3-7.3A1.9 1.9 0 0 1 15 4.4z"/>
+	{% else if name == "less" %}<path d="M17 14V3M9 18.1l1-4.1H4.2a2 2 0 0 1-2-2.4l1.4-7A2 2 0 0 1 5.6 3H17v11l-4.3 7.3A1.9 1.9 0 0 1 9 19.6z"/>
+	{% else if name == "exclude" %}<circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/>
 	{% endif %}
 </svg>
 {%- endmacro %}
@@ -73,11 +77,34 @@
 {% endif %}
 {%- endmacro %}
 
+{% macro rate_menu(post) -%}
+{% if !post.community.starts_with("u_") -%}
+{% let rating = prefs.post_rating(post.community.as_str()) -%}
+<details class="post-rate" data-rating="{{ rating }}" data-community="{{ post.community.to_ascii_lowercase() }}">
+	<summary aria-label="Rate r/{{ post.community }}" title="Rate r/{{ post.community }}">
+		<span class="post-rate-state" data-state="">{% call icon("more") %}</span>
+		<span class="post-rate-state" data-state="interested">{% call icon("interested") %}<span>Interested</span></span>
+		<span class="post-rate-state" data-state="less">{% call icon("less") %}<span>Showing less</span></span>
+		<span class="post-rate-state" data-state="exclude">{% call icon("exclude") %}<span>Excluded</span></span>
+	</summary>
+	<form class="post-rate-menu" action="/feedback/rate" method="POST">
+		<input type="hidden" name="community" value="{{ post.community }}">
+		<input type="hidden" name="return_to" value="{{ url }}#{{ post.id }}">
+		<p class="post-rate-title">r/{{ post.community }} in For You</p>
+		<button type="submit" name="rating" value="interested" aria-pressed="{% if rating == "interested" %}true{% else %}false{% endif %}">{% call icon("interested") %}<span>Interested<small>Show more from this community. Doesn't subscribe.</small></span></button>
+		<button type="submit" name="rating" value="less" aria-pressed="{% if rating == "less" %}true{% else %}false{% endif %}">{% call icon("less") %}<span>Not interested<small>Show fewer posts from this community.</small></span></button>
+		<button type="submit" name="rating" value="exclude" aria-pressed="{% if rating == "exclude" %}true{% else %}false{% endif %}">{% call icon("exclude") %}<span>Exclude<small>Never show this community in For You.</small></span></button>
+		<button type="submit" name="rating" value="clear" class="post-rate-clear">Clear rating</button>
+	</form>
+</details>
+{%- endif %}
+{%- endmacro %}
+
 {% macro post(post) -%}
 {% set post_should_be_blurred = post.flags.spoiler && prefs.blur_spoiler=="on" -%}
 <!-- POST CONTENT -->
 <div class="post highlighted{% if post_should_be_blurred %} post_blurred{% endif %}">
-	<p class="post_header">
+	<div class="post_header">
 		<a class="post_subreddit" href="/r/{{ post.community }}"><span class="community-avatar" aria-hidden="true">r/</span>r/{{ post.community }}</a>
 		<span class="dot">&bull;</span>
 		<a class="post_author {{ post.author.distinguished }}" href="/user/{{ post.author.name }}">u/{{ post.author.name }}</a>
@@ -97,7 +124,8 @@
 			{% endfor %}
 		</span>
 		{% endif %}
-	</p>
+		{% call rate_menu(post) %}
+	</div>
 	<h1 class="post_title">
 		{% if post.flair.flair_parts.len() > 0 %}
 			<a href="/r/{{ post.community }}/search?q=flair_name%3A%22{{ post.flair.text }}%22&restrict_sr=on"
@@ -228,7 +256,7 @@
 {% macro post_in_list(post) -%}
 {% set post_should_be_blurred = (post.flags.nsfw && prefs.blur_nsfw=="on") || (post.flags.spoiler && prefs.blur_spoiler=="on") -%}
 <div class="post{% if post.flags.stickied %} stickied{% endif %}{% if post_should_be_blurred %} post_blurred{% endif %}" id="{{ post.id }}">
-	<p class="post_header">
+	<div class="post_header">
 		{% let community -%}
 		{% if post.community.starts_with("u_") -%}
 			{% let community = format!("u/{}", &post.community[2..]) -%}
@@ -247,7 +275,8 @@
 			</span>
 			{% endfor %}
 		{% endif %}
-	</p>
+		{% call rate_menu(post) %}
+	</div>
 	<h2 class="post_title">
 		{% if post.flair.flair_parts.len() > 0 %}
 			<a href="/r/{{ post.community }}/search?q=flair_name%3A%22{{ post.flair.text }}%22&restrict_sr=on"

@@ -32,9 +32,19 @@
 			<label><input type="radio" name="discovery_level" value="high" {% if discovery_level == "high" %}checked{% endif %}> <span>Explore more <small>About half of posts are suggestions</small></span></label>
 		</fieldset>
 		<div class="discover-field">
-			<label for="discover_excluded">Communities to never suggest</label>
+			<label for="discover_interested">Interested</label>
+			<textarea id="discover_interested" name="interested" rows="3" autocapitalize="none" autocomplete="off" spellcheck="false" aria-describedby="discover_interested_help">{{ interested }}</textarea>
+			<p id="discover_interested_help" class="discover-hint">Rating a post "Interested" adds its community here. These are included in For You without subscribing.</p>
+		</div>
+		<div class="discover-field">
+			<label for="discover_less_interested">Show less</label>
+			<textarea id="discover_less_interested" name="less_interested" rows="3" autocapitalize="none" autocomplete="off" spellcheck="false" aria-describedby="discover_less_interested_help">{{ less_interested }}</textarea>
+			<p id="discover_less_interested_help" class="discover-hint">Rating a post "Not interested" adds its community here. About 1 in 4 of its posts still appear.</p>
+		</div>
+		<div class="discover-field">
+			<label for="discover_excluded">Excluded</label>
 			<textarea id="discover_excluded" name="excluded" rows="3" autocapitalize="none" autocomplete="off" spellcheck="false" aria-describedby="discover_excluded_help">{{ excluded }}</textarea>
-			<p id="discover_excluded_help" class="discover-hint">"Not interested" adds communities here. Remove a name to see it again.</p>
+			<p id="discover_excluded_help" class="discover-hint">Rating a post "Exclude" adds its community here. It won't appear in For You. Remove a name to see it again.</p>
 		</div>
 		<button id="save" type="submit">Save For You</button>
 	</form>

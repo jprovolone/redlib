@@ -1,0 +1,7 @@
+# Fresh feeds and pull to refresh
+
+Hot feeds aim to feel like the Reddit app, where each refresh brings something new. This covers Home, subreddits, multireddits, Popular, All, and For You.
+
+- **Rising and new posts are mixed in.** Each hot page also fetches up to 6 `rising` and 3 `new` posts from the same communities. They are woven in at slightly different positions on every load, and pinned posts stay first. Each source has its own pagination cursor (`r_after`/`n_after`, or `fr_after`/`fn_after` on For You), so endless scrolling continues through all of them. A failed extra source never breaks the page. Paging backwards and the other sorts (new, top, …) are unchanged. This is about three Reddit requests per page instead of one.
+- **Seen posts move down.** `static/fresh-feed.js` remembers which posts you've seen: a post counts once it has been mostly on screen for 0.7 seconds. The list is kept only in this browser's `localStorage` (`redlib:seen:v1`), holds up to 3,000 posts, and forgets them after 4 days. On hot feeds, unseen posts come first, with one previously seen post after every three unseen ones. Nothing is hidden. Endless-scroll batches are arranged the same way.
+- **Pull to refresh.** On touch devices, pulling down at the top of a page stretches the content with rubber-band resistance. Releasing past the threshold reloads; releasing early springs back. It's disabled on pages with text boxes, so unsaved edits aren't lost, and it respects reduced motion (`static/pull-refresh.js`).

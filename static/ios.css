@@ -821,3 +821,52 @@ body.ios-ui.fixed_navbar #column_one:has(div.post.highlighted + #commentQueryFor
 .ios-ui .settings-transfer-hint, .ios-ui .settings-transfer-link { margin: 0; font-size: 13px; color: var(--ios-muted); }
 .ios-ui .settings-transfer-link { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--ios-line); }
 .ios-ui .settings-transfer-link a { color: var(--ios-accent); font-weight: 600; }
+
+/* Post rating: top-right of each card. Quiet "..." until rated, then a labelled pill */
+.ios-ui .post_header .post-rate { position: relative; margin-left: auto; flex: none; }
+.ios-ui .post-rate > summary { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-width: 32px; height: 32px; padding: 0 6px; box-sizing: border-box; border-radius: 16px; color: var(--ios-muted); font-size: 12px; font-weight: 700; list-style: none; cursor: pointer; user-select: none; }
+.ios-ui .post-rate > summary::-webkit-details-marker { display: none; }
+.ios-ui .post-rate > summary::marker { content: ""; }
+.ios-ui .post-rate > summary::after { content: ""; position: absolute; inset: -6px -4px; }
+.ios-ui .post-rate > summary:hover, .ios-ui .post-rate[open] > summary { background: var(--ios-line); color: var(--ios-text); }
+.ios-ui .post-rate > summary:focus-visible { outline: 2px solid var(--ios-accent); outline-offset: 2px; }
+.ios-ui .post-rate svg { width: 18px; height: 18px; flex: none; }
+.ios-ui .post-rate-state { display: none; align-items: center; gap: 4px; }
+.ios-ui .post-rate[data-rating=""] .post-rate-state[data-state=""],
+.ios-ui .post-rate[data-rating="interested"] .post-rate-state[data-state="interested"],
+.ios-ui .post-rate[data-rating="less"] .post-rate-state[data-state="less"],
+.ios-ui .post-rate[data-rating="exclude"] .post-rate-state[data-state="exclude"] { display: inline-flex; }
+.ios-ui .post-rate:not([data-rating=""]) > summary { padding: 0 10px 0 8px; background: var(--ios-line); color: var(--ios-text); }
+.ios-ui .post-rate[data-rating="interested"] > summary { background: color-mix(in srgb, var(--ios-accent) 16%, transparent); color: var(--ios-accent); }
+.ios-ui .post-rate[data-rating="exclude"] > summary { color: var(--ios-muted); text-decoration: line-through; }
+.ios-ui .post-rate-menu { position: absolute; z-index: 40; top: calc(100% + 6px); right: 0; display: flex; flex-direction: column; width: min(300px, calc(100vw - 24px)); margin: 0; padding: 8px; box-sizing: border-box; background: var(--ios-bar); border: 1px solid var(--ios-line); border-radius: 16px; box-shadow: 0 8px 32px #0003; cursor: default; }
+.ios-ui .post-rate-title { margin: 4px 12px 6px; font-size: 13px; font-weight: 600; color: var(--ios-muted); overflow-wrap: anywhere; }
+.ios-ui .post-rate-menu button { display: flex; align-items: flex-start; gap: 12px; width: 100%; min-height: 44px; margin: 0; padding: 10px 12px; box-sizing: border-box; border: 0; border-radius: 10px; background: transparent; color: var(--ios-text); font: 600 15px/1.25 var(--ios-font); text-align: left; cursor: pointer; }
+.ios-ui .post-rate-menu button > span { flex: 1; min-width: 0; }
+.ios-ui .post-rate-menu button small { display: block; margin-top: 2px; font-size: 12px; font-weight: 400; color: var(--ios-muted); }
+.ios-ui .post-rate-menu button svg { margin-top: 1px; color: var(--ios-muted); }
+.ios-ui .post-rate-menu button:hover, .ios-ui .post-rate-menu button:focus-visible { background: var(--ios-line); outline: none; }
+.ios-ui .post-rate-menu button[aria-pressed="true"] svg { color: var(--ios-accent); }
+.ios-ui .post-rate-menu button[aria-pressed="true"]::after { content: ""; flex: none; width: 5px; height: 10px; margin: 4px 4px 0 auto; border: solid var(--ios-accent); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.ios-ui .post-rate-menu .post-rate-clear { justify-content: center; min-height: 40px; margin-top: 4px; padding: 0 12px; align-items: center; border-top: 1px solid var(--ios-line); border-radius: 0 0 10px 10px; color: var(--ios-muted); font-size: 14px; }
+.ios-ui .post-rate[data-rating=""] .post-rate-clear { display: none; }
+/* Cards clip media corners; let an open menu escape the card */
+.ios-ui .post:has(.post-rate[open]) { position: relative; z-index: 30; overflow: visible; }
+
+/* Pull to refresh (touch only; see pull-refresh.js). The indicator is a zero-height
+   strip between the sticky header and the content, revealed as the content is pulled. */
+html.ptr-enabled, html.ptr-enabled body { overscroll-behavior-y: none; }
+.ios-ui .ptr-indicator { position: relative; z-index: 10; left: 50%; display: flex; align-items: flex-start; gap: 8px; width: max-content; height: 0; opacity: 0; pointer-events: none; transform: translate3d(-50%, -20px, 0); }
+.ios-ui .ptr-spinner { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex: none; border: 1px solid var(--ios-line); border-radius: 50%; background: var(--ios-card); color: var(--ios-muted); box-shadow: 0 2px 8px #0002; }
+.ios-ui .ptr-spinner svg { transition: transform .2s ease; }
+.ios-ui .ptr-indicator.is-ready .ptr-spinner svg { transform: rotate(180deg); }
+.ios-ui .ptr-indicator.is-refreshing .ptr-spinner svg { display: none; }
+.ios-ui .ptr-indicator.is-refreshing .ptr-spinner::before { content: ""; width: 16px; height: 16px; box-sizing: border-box; border: 2px solid var(--ios-line); border-top-color: var(--ios-accent); border-radius: 50%; animation: ios-spin .8s linear infinite; }
+.ios-ui .ptr-label { line-height: 32px; font-size: 13px; font-weight: 600; color: var(--ios-muted); white-space: nowrap; }
+.ios-ui .ptr-label:empty { display: none; }
+/* Slight overshoot on release gives the iOS bounce */
+.ios-ui main.ptr-settling, .ios-ui .ptr-indicator.ptr-settling { transition: transform .42s cubic-bezier(.3, 1.35, .5, 1), opacity .3s ease; }
+@media (prefers-reduced-motion: reduce) {
+    .ios-ui main.ptr-settling, .ios-ui .ptr-indicator.ptr-settling, .ios-ui .ptr-spinner svg { transition: none; }
+    .ios-ui .ptr-indicator.is-refreshing .ptr-spinner::before { animation-duration: 2.4s; }
+}

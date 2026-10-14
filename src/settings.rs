@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 
 // CRATES
-use crate::discovery::ForYouExport;
+use crate::discovery::{ForYouExport, ForYouRatings};
 use crate::server::ResponseExt;
 use crate::subreddit::join_until_size_limit;
 use crate::utils::{deflate_compress, deflate_decompress, redirect, template, Preferences};
@@ -36,21 +36,24 @@ fn join_query(a: &str, b: &str) -> String {
 	}
 }
 
-/// Export code: compressed bincode of `(Preferences, ForYouExport)`.
-/// `Preferences` bytes come first and are unchanged, so upstream Redlib (which
-/// ignores trailing bytes) can still import these codes, minus For You.
-pub fn export_code(prefs: &Preferences, for_you: &ForYouExport) -> Result<String, String> {
-	let bytes = bincode::serialize(&(prefs, for_you)).map_err(|e| e.to_string())?;
+/// Export code: compressed bincode of `(Preferences, ForYouExport, ForYouRatings)`.
+/// Each part is appended after the previous unchanged bytes, so upstream Redlib
+/// and older versions of this fork (which ignore trailing bytes) still import them.
+pub fn export_code(prefs: &Preferences, for_you: &ForYouExport, ratings: &ForYouRatings) -> Result<String, String> {
+	let bytes = bincode::serialize(&(prefs, for_you, ratings)).map_err(|e| e.to_string())?;
 	Ok(base2048::encode(&deflate_compress(bytes)?))
 }
 
-/// Decodes new codes, falling back to older codes that contain only `Preferences`.
-pub fn decode_export(bytes: &[u8]) -> Result<(Preferences, ForYouExport), String> {
-	bincode::deserialize::<(Preferences, ForYouExport)>(bytes).or_else(|_| {
-		bincode::deserialize::<Preferences>(bytes)
-			.map(|prefs| (prefs, ForYouExport::default()))
-			.map_err(|e| format!("Failed to deserialize bytes into Preferences struct: {e}"))
-	})
+/// Decodes the newest layout first. A new code also decodes as an older layout
+/// (trailing bytes are ignored), so the order matters.
+pub fn decode_export(bytes: &[u8]) -> Result<(Preferences, ForYouExport, ForYouRatings), String> {
+	bincode::deserialize::<(Preferences, ForYouExport, ForYouRatings)>(bytes)
+		.or_else(|_| bincode::deserialize::<(Preferences, ForYouExport)>(bytes).map(|(prefs, for_you)| (prefs, for_you, ForYouRatings::default())))
+		.or_else(|_| {
+			bincode::deserialize::<Preferences>(bytes)
+				.map(|prefs| (prefs, ForYouExport::default(), ForYouRatings::default()))
+				.map_err(|e| format!("Failed to deserialize bytes into Preferences struct: {e}"))
+		})
 }
 
 // CONSTANTS
@@ -84,9 +87,12 @@ pub async fn get(req: Request<Body>) -> Result<Response<Body>, String> {
 	let url = req.uri().to_string();
 	let prefs = Preferences::new(&req);
 	let for_you = ForYouExport::from_request(&req);
+	let ratings = ForYouRatings::from_request(&req);
 	Ok(template(&SettingsTemplate {
-		restore_query: prefs.to_urlencoded().map(|query| join_query(&query, &for_you.to_query())),
-		export_code: export_code(&prefs, &for_you),
+		restore_query: prefs
+			.to_urlencoded()
+			.map(|query| join_query(&join_query(&query, &for_you.to_query()), &ratings.to_query())),
+		export_code: export_code(&prefs, &for_you, &ratings),
 		prefs,
 		url,
 	}))
@@ -184,6 +190,7 @@ fn set_cookies_method(req: Request<Body>, remove_cookies: bool) -> Response<Body
 
 	// For You settings (restore links and decoded export codes).
 	ForYouExport::from_query(&form).apply(&mut response, remove_cookies);
+	ForYouRatings::from_query(&form).apply(&mut response, remove_cookies);
 
 	// Get subscriptions/filters to restore from query string
 	let subscriptions = form.get("subscriptions");
@@ -330,13 +337,16 @@ pub async fn encoded_restore(req: Request<Body>) -> Result<Response<Body>, Strin
 		.await
 		.map_err(|e| format!("Failed to decompress bytes: {e}"))??;
 
-	let (mut prefs, for_you) = timeout(std::time::Duration::from_secs(1), async { decode_export(&out) })
+	let (mut prefs, for_you, ratings) = timeout(std::time::Duration::from_secs(1), async { decode_export(&out) })
 		.await
 		.map_err(|e| format!("Failed to deserialize preferences: {e}"))??;
 
 	prefs.available_themes = vec![];
 
-	let url = format!("/settings/restore/?{}", join_query(&prefs.to_urlencoded()?, &for_you.to_query()));
+	let url = format!(
+		"/settings/restore/?{}",
+		join_query(&join_query(&prefs.to_urlencoded()?, &for_you.to_query()), &ratings.to_query())
+	);
 
 	Ok(redirect(&url))
 }
@@ -360,14 +370,29 @@ mod tests {
 			front_page: "for_you".into(),
 			..Preferences::default()
 		};
-		let code = export_code(&prefs, &sample_for_you()).unwrap();
+		let ratings = ForYouRatings {
+			interested: "books".into(),
+			less_interested: "space".into(),
+		};
+		let code = export_code(&prefs, &sample_for_you(), &ratings).unwrap();
 		let bytes = deflate_decompress(base2048::decode(&code).unwrap()).unwrap();
 
-		// This fork restores both parts.
-		let (decoded, for_you) = decode_export(&bytes).unwrap();
+		// This fork restores all parts.
+		let (decoded, for_you, decoded_ratings) = decode_export(&bytes).unwrap();
 		assert_eq!(decoded.theme, "dark");
 		assert_eq!(decoded.front_page, "for_you");
 		assert_eq!(for_you, sample_for_you());
+		assert_eq!(decoded_ratings, ratings);
+
+		// The previous fork layout (Preferences, ForYouExport) still reads new codes.
+		let (_, previous): (Preferences, ForYouExport) = bincode::deserialize(&bytes).unwrap();
+		assert_eq!(previous, sample_for_you());
+
+		// Old pair codes import with empty ratings.
+		let pair = bincode::serialize(&(&prefs, &sample_for_you())).unwrap();
+		let (_, for_you, decoded_ratings) = decode_export(&pair).unwrap();
+		assert_eq!(for_you, sample_for_you());
+		assert_eq!(decoded_ratings, ForYouRatings::default());
 
 		// Upstream Redlib decodes only `Preferences` and ignores the trailing For You bytes.
 		let upstream: Preferences = bincode::deserialize(&bytes).unwrap();
@@ -375,19 +400,23 @@ mod tests {
 
 		// Older codes (Preferences only) still import, with For You left at defaults.
 		let legacy = bincode::serialize(&prefs).unwrap();
-		let (decoded, for_you) = decode_export(&legacy).unwrap();
+		let (decoded, for_you, decoded_ratings) = decode_export(&legacy).unwrap();
 		assert_eq!(decoded.theme, "dark");
 		assert_eq!(for_you, ForYouExport::default());
+		assert_eq!(decoded_ratings, ForYouRatings::default());
 	}
 
 	#[test]
 	fn restore_links_carry_validated_for_you_settings() {
 		let query = sample_for_you().to_query();
 		assert_eq!(query, "fy_favorites=linux%2Bspace&fy_excluded=books&fy_level=high");
-		let req = Request::builder().uri(format!("/settings/restore/?theme=dark&{query}")).body(Body::empty()).unwrap();
+		let req = Request::builder()
+			.uri(format!("/settings/restore/?theme=dark&{query}&fy_interested=Cooking&fy_less_interested=space"))
+			.body(Body::empty())
+			.unwrap();
 		let response = set_cookies_method(req, true);
 		let cookies: Vec<_> = response.headers().get_all("set-cookie").iter().map(|h| h.to_str().unwrap().to_string()).collect();
-		for expected in ["theme=dark;", "fy_favorites=linux+space;", "fy_excluded=books;", "fy_level=high;"] {
+		for expected in ["theme=dark;", "fy_favorites=linux+space;", "fy_excluded=books;", "fy_level=high;", "fy_interested=cooking;", "fy_less_interested=space;"] {
 			assert!(cookies.iter().any(|c| c.starts_with(expected)), "missing {expected} in {cookies:?}");
 		}
 

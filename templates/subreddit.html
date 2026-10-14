@@ -60,7 +60,7 @@
 			{% if all_posts_filtered %}
 				 <center>(All content on this page has been filtered)</center>
 			{% else %}
-			<div id="posts" data-infinite-list>
+			<div id="posts" data-infinite-list{% if sort.0 == "hot" %} data-fresh{% endif %}>
 			{% for post in posts %}
 			{% if !(post.flags.nsfw && prefs.show_nsfw != "on") %}
 			<hr class="sep" />
@@ -72,6 +72,7 @@
 			<script src="/playHLSVideo.js"></script>
 			{% endif %}
 			</div>
+			<script src="/fresh-feed.js?v=1"></script>
 			{% endif %}
 
 			<footer>
@@ -79,8 +80,8 @@
 				<a href="?sort={{ sort.0 }}&t={{ sort.1 }}&before={{ ends.0 }}" accesskey="P">PREV</a>
 				{% endif %}
 
-				{% if !ends.1.is_empty() %}
-				<a href="?sort={{ sort.0 }}&t={{ sort.1 }}&after={{ ends.1 }}" accesskey="N">NEXT</a>
+				{% if !ends.1.is_empty() || !fresh_query.is_empty() %}
+				<a href="?sort={{ sort.0 }}&t={{ sort.1 }}&after={% if ends.1.is_empty() %}end{% else %}{{ ends.1 }}{% endif %}{{ fresh_query }}" accesskey="N">NEXT</a>
 				{% endif %}
 			</footer>
 		</div>

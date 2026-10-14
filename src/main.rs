@@ -234,6 +234,15 @@ async fn main() {
 		.at("/infinite-scroll.js")
 		.get(|_| resource(include_str!("../static/infinite-scroll.js"), "text/javascript", false).boxed());
 	app
+		.at("/post-rate.js")
+		.get(|_| resource(include_str!("../static/post-rate.js"), "text/javascript", false).boxed());
+	app
+		.at("/pull-refresh.js")
+		.get(|_| resource(include_str!("../static/pull-refresh.js"), "text/javascript", false).boxed());
+	app
+		.at("/fresh-feed.js")
+		.get(|_| resource(include_str!("../static/fresh-feed.js"), "text/javascript", false).boxed());
+	app
 		.at("/manifest.json")
 		.get(|_| resource(include_str!("../static/manifest.json"), "application/json", false).boxed());
 	app.at("/robots.txt").get(|_| {
@@ -365,6 +374,7 @@ async fn main() {
 		.get(|r| discovery::settings(r).boxed())
 		.post(|r| discovery::configure(r).boxed());
 	app.at("/for-you/hide").post(|r| discovery::hide(r).boxed());
+	app.at("/feedback/rate").post(|r| discovery::rate(r).boxed());
 
 	// Front page
 	app.at("/").get(|r| subreddit::community(r).boxed());
